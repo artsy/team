@@ -1,0 +1,9 @@
+---
+version: '2'
+services:
+  team:
+    extends:
+      file: build.yml
+      service: team
+    ports:
+      - 3000:3000
