@@ -3,6 +3,7 @@
   "private": true,
   "description": "",
   "scripts": {
+    "start": "next start",
     "dev": "next dev",
     "build": "next build",
     "type-check": "tsc"
