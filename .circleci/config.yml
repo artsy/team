@@ -25,14 +25,9 @@ only_release: &only_release
 workflows:
   build-deploy:
     jobs:
-      - hokusai/test:
-          <<: *not_staging_or_release
-
       - hokusai/push:
           name: push-staging-image
           <<: *only_master
-          requires:
-            - hokusai/test
 
       - hokusai/deploy-staging:
           <<: *only_master
