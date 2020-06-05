@@ -46,7 +46,7 @@ spec:
           readinessProbe:
             httpGet:
               port: team-http
-              path: /health/ping
+              path: /api/health
               httpHeaders:
                 - name: X-Forwarded-Proto
                   value: https
