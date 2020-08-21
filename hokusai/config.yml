@@ -4,4 +4,4 @@ hokusai-required-version: ">=0.5.8"
 git-remote: git@github.com:artsy/team.git
 template-config-files:
   - s3://artsy-citadel/k8s/hokusai-vars.yml
-  - s3://artsy-citadel/dev/.env.team
+  - s3://artsy-citadel/team/vars.yml
