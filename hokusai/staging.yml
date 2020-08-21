@@ -135,3 +135,18 @@ spec:
             backend:
               serviceName: team-web-internal
               servicePort: http
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: team-oauth
+spec:
+  rules:
+    - host: team-staging.artsy.net
+      http:
+        paths:
+          - path: /oauth2
+            backend:
+              serviceName: team-web-internal
+              servicePort: http
