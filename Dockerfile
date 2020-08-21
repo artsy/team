@@ -1,5 +1,12 @@
 FROM node:alpine
 
+# Build environment variables
+ARG SHEETS_URL
+ARG ACCESS_KEY_ID
+ARG SECRET_ACCESS_KEY
+ARG REGION
+ARG IMAGE_BUCKET
+
 WORKDIR /app
 
 # Install system dependencies

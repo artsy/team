@@ -1,6 +1,12 @@
 ---
-version: '2'
+version: "2"
 services:
   team:
     build:
       context: ../
+      args:
+        SHEETS_URL: "{{ SHEETS_URL }}"
+        ACCESS_KEY_ID: "{{ ACCESS_KEY_ID }}"
+        SECRET_ACCESS_KEY: "{{ SECRET_ACCESS_KEY }}"
+        REGION: "{{ REGION }}"
+        IMAGE_BUCKET: "{{ IMAGE_BUCKET }}"
