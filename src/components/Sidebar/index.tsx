@@ -15,7 +15,7 @@ import RouteLink from "next/link";
 import Router, { NextRouter, useRouter } from "next/router";
 import { debounce, groupBy } from "lodash-es";
 import { useRef, useEffect } from "react";
-import { normalizeParam } from "utils";
+import { normalizeParam, getSearchParam } from "utils";
 import { Member } from "pages/index";
 
 const search = debounce((router: NextRouter, searchTerm: string) => {
@@ -99,9 +99,7 @@ export const Sidebar = ({ data }: SidebarProps) => {
       if (!url.includes("search=")) {
         inputEl.current.value = "";
       } else {
-        inputEl.current.value = decodeURI(
-          new URL("http://noop" + url).searchParams.get("search") || ""
-        );
+        inputEl.current.value = getSearchParam(url);
       }
     };
 

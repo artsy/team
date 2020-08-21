@@ -115,39 +115,38 @@ spec:
     kind: Deployment
     name: team-web
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 2
   targetCPUUtilizationPercentage: 70
 
 ---
-apiVersion: v1
-kind: Service
+apiVersion: extensions/v1beta1
+kind: Ingress
 metadata:
-  labels:
-    app: team
-    component: web
-    layer: application
-  name: team-web
-  namespace: default
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:iam::585031190124:server-certificate/2018-01-17_artsy-net-wildcard"
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "5"
+  name: team-external-auth
+annotations:
+  nginx.ingress.kubernetes.io/auth-url: "https://$host/api/auth"
+  nginx.ingress.kubernetes.io/auth-signin: "https://stagingapi.artsy.net/oauth2/authorize?client_id={{ APP_ID }}&redirect_uri=$host/oauth2/callback?redirect_to=$escaped_request_uri"
 spec:
-  ports:
-    - port: 80
-      protocol: TCP
-      name: http
-      targetPort: nginx-http
-    - port: 443
-      protocol: TCP
-      name: https
-      targetPort: nginx-https
-  selector:
-    app: team
-    layer: application
-    component: web
-  sessionAffinity: None
-  type: LoadBalancer
+  rules:
+    - host: team-staging.artsy.net
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: team-web-internal
+              servicePort: http
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: team-oauth
+spec:
+  rules:
+    - host: team-staging.artsy.net
+      http:
+        paths:
+          - path: /oauth2
+            backend:
+              serviceName: team-web-internal
+              servicePort: http

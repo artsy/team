@@ -2,8 +2,6 @@ import { Box, Flex, space, Serif, Link, color, Spacer } from "@artsy/palette";
 import { Sidebar } from "components/Sidebar";
 import styled from "styled-components";
 import { cloneElement } from "react";
-import useSWR from "swr";
-import fetch from "isomorphic-unfetch";
 import { External } from "react-bytesize-icons";
 import Error from "next/error";
 
@@ -18,33 +16,14 @@ interface TeamProps {
   errorMessage?: string;
 }
 
-const fetcher = async (url: string) => {
-  const cache = sessionStorage.getItem(url);
-  if (cache) {
-    return JSON.parse(cache);
-  }
-  const res = await fetch(url);
-  const json = await res.json();
-  sessionStorage.setItem(url, JSON.stringify(json));
-  return json;
-};
-
 export const Layout: React.FC<TeamProps> = ({ children, ...props }) => {
-  if (props.errorCode) {
-    return (
-      <Error statusCode={props.errorCode} title={props.errorMessage}></Error>
-    );
+  const { errorCode, data, errorMessage } = props;
+  if (errorCode) {
+    return <Error statusCode={errorCode} title={errorMessage}></Error>;
   }
-  const { data = [], error } = useSWR(
-    `${process.env.ASSET_PREFIX ?? ""}/api/team/all`,
-    fetcher,
-    {
-      initialData: props.data,
-    }
-  );
   return (
     <Flex height="100%">
-      <Sidebar {...props} data={data} />
+      <Sidebar {...props} data={props.data} />
       <PageContainer
         width="100%"
         height="100%"
@@ -72,7 +51,7 @@ export const Layout: React.FC<TeamProps> = ({ children, ...props }) => {
             </Flex>
           </Link>
         </Flex>
-        {cloneElement(children as any, { data, error })}
+        {cloneElement(children as any, { data, errorMessage })}
       </PageContainer>
     </Flex>
   );

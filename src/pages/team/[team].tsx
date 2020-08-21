@@ -5,15 +5,32 @@ import { normalizeParam } from "utils";
 import { NoResults } from "components/NoResults";
 import { FC } from "react";
 import Error from "next/error";
+import { GetStaticProps, GetStaticPaths } from "next";
+import { getMembers, getMemberProperty } from "../../data/team";
 
-export { getServerSideProps } from "../index";
+export const getStaticPaths: GetStaticPaths = async () => {
+  const teams = await getMemberProperty("team");
+  return {
+    paths: teams.map((team) => ({
+      params: {
+        team: normalizeParam(team),
+      },
+    })),
+    fallback: false,
+  };
+};
+
+export const getStaticProps: GetStaticProps = async () => {
+  const members = await getMembers();
+  return {
+    props: {
+      data: members,
+    },
+  };
+};
 
 const Team: FC<ServerProps> = (props) => {
   const router = useRouter();
-
-  if (router.isFallback) {
-    return <Spinner />;
-  }
 
   if (!props.data) {
     return <Error statusCode={500} />;

@@ -1,30 +1,47 @@
 import { useRouter } from "next/router";
-import TeamNav, { ServerProps } from "../index";
+import TeamNav, { ServerProps, Member } from "../index";
 import { Spinner } from "@artsy/palette";
 import { normalizeParam } from "utils";
 import { NoResults } from "components/NoResults";
 import { FC } from "react";
 import Error from "next/error";
+import { GetStaticProps, GetStaticPaths } from "next";
+import { getMembers, getMemberProperty } from "../../data/team";
 
-// export const getStaticPaths = getPathsForRoute({
-//   route: "location",
-//   key: "city"
-// });
+export const getStaticPaths: GetStaticPaths = async () => {
+  const locations = await getMemberProperty("city");
+  return {
+    paths: locations.map((location) => ({
+      params: {
+        location: normalizeParam(location!),
+      },
+    })),
+    fallback: false,
+  };
+};
 
-export { getServerSideProps } from "../index";
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const members = await getMembers();
+  return {
+    props: {
+      data: members,
+      location: params?.location,
+    },
+  };
+};
 
-const Location: FC<ServerProps> = (props) => {
-  const router = useRouter();
+interface LocationProps {
+  data: Member[];
+  location: string;
+}
 
-  if (router.isFallback) {
-    return <Spinner />;
+const Location: FC<LocationProps> = (props) => {
+  const { location } = props;
+
+  if (!props.location) {
+    return <Error statusCode={404} />;
   }
 
-  if (!props.data) {
-    return <Error statusCode={500} />;
-  }
-
-  const location = router.query.location;
   let formattedLocation = "";
 
   const data = props.data.filter((member) => {
