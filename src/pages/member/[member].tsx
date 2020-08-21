@@ -18,34 +18,40 @@ import { useMemo, FC } from "react";
 import { H1 } from "components/Typography";
 import RouterLink from "next/link";
 import { Member as MemberType, ServerProps } from "../index";
+import { GetStaticProps, GetStaticPaths } from "next";
+import { getMembers, getMemberProperty } from "../../data/team";
 
-export { getServerSideProps } from "../index";
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const members = await getMembers();
+  return {
+    props: {
+      data: members,
+      member: members.find(
+        (member) => normalizeParam(member.name) === params?.member
+      ),
+    },
+  };
+};
 
-const Member: FC<ServerProps> = (props) => {
-  const router = useRouter();
+export const getStaticPaths: GetStaticPaths = async () => {
+  const names = await getMemberProperty("name");
+  return {
+    paths: names.map((name) => ({
+      params: {
+        member: normalizeParam(name),
+      },
+    })),
+    fallback: false,
+  };
+};
 
-  if (router.isFallback) {
-    return <Spinner />;
-  }
+interface MemberProps {
+  member: MemberType;
+}
 
-  if (!props.data) {
-    return <Error statusCode={500} />;
-  }
-
-  const name = router.query.member;
-  let member: MemberType | undefined;
-  let manager: MemberType | undefined;
-
-  useMemo(() => {
-    member = props!.data!.find((employee) => {
-      return normalizeParam(employee.name) === name;
-    });
-    if (member && member?.reports_to) {
-      manager = props!.data!.find((employee) => {
-        return employee.name === member!.reports_to;
-      });
-    }
-  }, [name]);
+const Member: FC<MemberProps> = (props) => {
+  const { member } = props;
+  const { manager } = member;
 
   if (!member) {
     return <Error statusCode={404} />;

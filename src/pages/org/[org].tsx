@@ -5,9 +5,29 @@ import { normalizeParam } from "utils";
 import { NoResults } from "components/NoResults";
 import { FC } from "react";
 import Error from "next/error";
+import { getMembers, getMemberProperty } from "../../data/team";
+import { GetStaticProps, GetStaticPaths } from "next";
 
-export { getServerSideProps } from "../index";
+export const getStaticPaths: GetStaticPaths = async () => {
+  const orgs = await getMemberProperty("org");
+  return {
+    paths: orgs.map((org) => ({
+      params: {
+        org: normalizeParam(org),
+      },
+    })),
+    fallback: false,
+  };
+};
 
+export const getStaticProps: GetStaticProps = async () => {
+  const members = await getMembers();
+  return {
+    props: {
+      data: members,
+    },
+  };
+};
 const Organization: FC<ServerProps> = (props) => {
   const router = useRouter();
 
