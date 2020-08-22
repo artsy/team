@@ -108,7 +108,7 @@ metadata:
   name: team-external-auth
   annotations:
     nginx.ingress.kubernetes.io/auth-url: "http://team-web-internal.default.svc.cluster.local:3000/api/auth"
-    nginx.ingress.kubernetes.io/auth-signin: "https://team-staging.artsy.net/oauth2/callback?$escaped_request_uri"
+    nginx.ingress.kubernetes.io/auth-signin: "https://stagingapi.artsy.net/oauth2/authorize?response_type=code&client_id={{ APP_ID }}&redirect_uri=$host/oauth2/callback?$escaped_request_uri"
 spec:
   rules:
     - host: team-staging.artsy.net
