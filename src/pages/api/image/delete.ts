@@ -1,9 +1,9 @@
 import { imageCache } from "utils/models";
-import { authorizedEndpoint } from "utils/auth";
 import { firstIfMany } from "utils";
 import to from "await-to-js";
+import { NowResponse, NowRequest } from "@now/node";
 
-export default authorizedEndpoint(async (req, res) => {
+export default async (req: NowRequest, res: NowResponse) => {
   const { id } = req.query;
   const [error] = await to(imageCache.delete(firstIfMany(id)));
   if (error) {
@@ -11,4 +11,4 @@ export default authorizedEndpoint(async (req, res) => {
   } else {
     res.status(200).send(`Image ${id} deleted`);
   }
-});
+};

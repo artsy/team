@@ -19,15 +19,13 @@
     "isotopes": "^0.6.0",
     "jwt-decode": "^2.2.0",
     "lodash-es": "^4.17.15",
-    "mem": "^6.1.0",
     "next": "^9.3.6",
     "node-cookie": "^2.1.2",
     "react": "^16.13.1",
     "react-bytesize-icons": "^0.11.1",
     "react-dom": "^16.13.1",
     "sharp": "^0.25.2",
-    "styled-components": "4",
-    "swr": "^0.2.0"
+    "styled-components": "4"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^9.3.6",
@@ -43,7 +41,6 @@
     "@types/sharp": "^0.25.0",
     "@types/styled-components": "^4",
     "@types/styled-system": "^3",
-    "@types/superagent": "^4.1.7",
     "next-transpile-modules": "^4.1.0",
     "typescript": "^3.8.3",
     "typescript-styled-plugin": "^0.15.0"
