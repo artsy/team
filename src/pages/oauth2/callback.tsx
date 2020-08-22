@@ -4,11 +4,16 @@ import { H1 } from "components/Typography";
 import fetch from "isomorphic-unfetch";
 import { Flex } from "@artsy/palette";
 import { redirectAuthorizedUsersWithCookie } from "utils/auth";
+import Logger from "pino-http";
+
+const log = Logger();
 
 export const getServerSideProps: GetServerSideProps = async ({
+  req,
   res,
   query,
 }) => {
+  log(req, res);
   const tokenResults = await fetch(
     "https://stagingapi.artsy.net/oauth2/access_token",
     {

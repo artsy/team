@@ -1,6 +1,5 @@
 import to from "await-to-js";
 import cookie from "node-cookie";
-import fetch from "isomorphic-unfetch";
 import { IncomingMessage, ServerResponse } from "http";
 import decode from "jwt-decode";
 
