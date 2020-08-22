@@ -1,20 +1,17 @@
 import { GetServerSideProps } from "next";
-import { authorizedPage } from "utils/auth";
 import { urlFromReq } from "utils";
 import { Flex, Box, Avatar } from "@artsy/palette";
 import { AvatarFallback } from "components/AvatarFallback";
 import { useState } from "react";
 import { ImageCacheModel } from "utils/models";
 
-export const getServerSideProps: GetServerSideProps = authorizedPage(
-  async (ctx, fetch) => {
-    const res = await fetch(`${urlFromReq(ctx.req)}/api/image/list`);
-    if (!res.ok) {
-      return { props: { errorCode: res.status, errorMessage: res.statusText } };
-    }
-    return { props: { cache: await res.json() } };
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const res = await fetch(`${urlFromReq(ctx.req)}/api/image/list`);
+  if (!res.ok) {
+    return { props: { errorCode: res.status, errorMessage: res.statusText } };
   }
-);
+  return { props: { cache: await res.json() } };
+};
 
 export const EditImages = ({ cache }: { cache: ImageCacheModel[] }) => {
   const [deleted, setDeleted] = useState<string[]>([]);
