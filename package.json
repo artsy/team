@@ -6,7 +6,8 @@
     "start": "next start",
     "dev": "next dev",
     "build": "next build",
-    "type-check": "tsc"
+    "type-check": "tsc",
+    "logs:staging": "hokusai staging logs | grep '^{' | npx miami-vice"
   },
   "dependencies": {
     "@artsy/next-layout": "^0.2.0",
