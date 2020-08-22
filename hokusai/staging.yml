@@ -107,7 +107,7 @@ kind: Ingress
 metadata:
   name: team-external-auth
   annotations:
-    nginx.ingress.kubernetes.io/auth-url: "https://$host/api/auth"
+    nginx.ingress.kubernetes.io/auth-url: "http://$host/api/auth"
     nginx.ingress.kubernetes.io/auth-signin: "https://stagingapi.artsy.net/oauth2/authorize?client_id={{ APP_ID }}&redirect_uri=$host/oauth2/callback?redirect_to=$escaped_request_uri"
 spec:
   rules:
