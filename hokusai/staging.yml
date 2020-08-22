@@ -117,7 +117,7 @@ spec:
           - path: /
             backend:
               serviceName: team-web-internal
-              servicePort: http
+              servicePort: 3000
 
 ---
 apiVersion: extensions/v1beta1
@@ -132,4 +132,4 @@ spec:
           - path: /oauth2
             backend:
               serviceName: team-web-internal
-              servicePort: http
+              servicePort: 3000
