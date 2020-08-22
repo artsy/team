@@ -29,7 +29,7 @@ export const getServerSideProps: GetServerSideProps = async ({
   await redirectAuthorizedUsersWithCookie(
     res,
     tokenResults.access_token,
-    query.redirect_to as string
+    decodeURI(query.rd as string)
   );
 
   return { props: {} };
