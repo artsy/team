@@ -25,10 +25,6 @@ spec:
               value: "3000"
             - name: NODE_ENV
               value: production
-            - name: TRACE_AGENT_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
           envFrom:
             - configMapRef:
                 name: team-environment
@@ -57,42 +53,7 @@ spec:
             preStop:
               exec:
                 command: ["sh", "-c", "sleep 10"]
-        - name: team-nginx
-          image: artsy/docker-nginx:1.14.2
-          ports:
-            - name: nginx-http
-              containerPort: 80
-            - name: nginx-https
-              containerPort: 443
-          readinessProbe:
-            tcpSocket:
-              port: nginx-http
-            initialDelaySeconds: 5
-            periodSeconds: 15
-            timeoutSeconds: 5
-          lifecycle:
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 5 && /usr/sbin/nginx -s quit"]
-          env:
-            - name: "NGINX_DEFAULT_CONF"
-              valueFrom:
-                configMapKeyRef:
-                  name: nginx-config
-                  key: default
-          volumeMounts:
-            - name: nginx-secrets
-              mountPath: /etc/nginx/ssl
-      volumes:
-        - name: nginx-secrets
-          secret:
-            secretName: nginx-secrets
-            defaultMode: 420
-      dnsPolicy: ClusterFirst
-      dnsConfig:
-        options:
-          - name: ndots
-            value: "1"
+      dnsPolicy: Default
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -117,6 +78,28 @@ spec:
   minReplicas: 1
   maxReplicas: 2
   targetCPUUtilizationPercentage: 70
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: team
+    component: web
+    layer: application
+  name: team-web-internal
+  namespace: default
+spec:
+  ports:
+    - port: 3000
+      protocol: TCP
+      name: http
+      targetPort: 3000
+  selector:
+    app: team
+    layer: application
+    component: web
+  type: ClusterIP
 
 ---
 apiVersion: extensions/v1beta1
