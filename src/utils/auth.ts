@@ -2,6 +2,7 @@ import to from "await-to-js";
 import cookie from "node-cookie";
 import { IncomingMessage, ServerResponse } from "http";
 import decode from "jwt-decode";
+import { log } from "./logger";
 
 const COOKIE_NAME = "artsy-studio-user-token";
 
@@ -49,12 +50,14 @@ export const redirectAuthorizedUsersWithCookie = async (
   redirectUrl: string
 ) => {
   const [error] = await to(setUserCookie(res, token));
-  console.log("error setting user cookie?", error);
+  log.error("Error setting user cookie", error);
   if (!error) {
     res.writeHead(302, {
       Location: redirectUrl,
       "Set-Cookie": res.getHeader("set-cookie"),
     });
     res.end();
+    return true;
   }
+  return false;
 };

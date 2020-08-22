@@ -4,14 +4,7 @@ import { H1 } from "components/Typography";
 import fetch from "isomorphic-unfetch";
 import { Flex } from "@artsy/palette";
 import { redirectAuthorizedUsersWithCookie } from "utils/auth";
-
-import Logger from "pino";
-import RequestLogger from "pino-http";
-
-const requestLog = RequestLogger();
-const Log = Logger({
-  level: process.env.LOG_LEVEL || "info",
-});
+import { log, requestLog } from "utils/logger";
 
 export const getServerSideProps: GetServerSideProps = async ({
   req,
@@ -19,6 +12,12 @@ export const getServerSideProps: GetServerSideProps = async ({
   query,
 }) => {
   requestLog(req, res);
+  log.debug("token request params", {
+    client_id: process.env.APP_ID,
+    client_secret: process.env.APP_SECRET,
+    code: query.code,
+    grant_type: "authorization_code",
+  });
   const tokenResults = await fetch(
     "https://stagingapi.artsy.net/oauth2/access_token",
     {
@@ -36,14 +35,27 @@ export const getServerSideProps: GetServerSideProps = async ({
     }
   ).then((res) => res.json());
 
-  Log.debug("tokenResults", tokenResults);
+  log.debug("tokenResults", tokenResults);
 
-  await redirectAuthorizedUsersWithCookie(
+  const success = await redirectAuthorizedUsersWithCookie(
     res,
     tokenResults.access_token,
     decodeURI(query.rd as string)
   );
-
+  if (success) return { props: {} };
+  res.writeHead(401, "Not Authorized");
+  res.write(`
+    <html>
+    <head>
+    </head>
+    <body>
+    <div style="height: 100%; display: flex; justify-content: center; align-items: center;">
+      <h1 style="font-size: 44px; font-family: helvetica, sans-serif; font-weight: 500;">You don't have permission to view this page.</h1>
+    </div>
+    </body>
+    </html>
+  `);
+  res.end();
   return { props: {} };
 };
 
