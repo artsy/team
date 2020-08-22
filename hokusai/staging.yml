@@ -107,9 +107,6 @@ kind: Ingress
 metadata:
   name: team-external-auth
   annotations:
-    nginx.ingress.kubernetes.io/whitelist-source-range: "{{ cloudflareIpSourceRanges|join(',') }}"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/auth-url: "https://$host/api/auth"
     nginx.ingress.kubernetes.io/auth-signin: "https://stagingapi.artsy.net/oauth2/authorize?client_id={{ APP_ID }}&redirect_uri=$host/oauth2/callback?redirect_to=$escaped_request_uri"
 spec:
@@ -127,10 +124,6 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: team-oauth
-  annotations:
-    nginx.ingress.kubernetes.io/whitelist-source-range: "{{ cloudflareIpSourceRanges|join(',') }}"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
 spec:
   rules:
     - host: team-staging.artsy.net
