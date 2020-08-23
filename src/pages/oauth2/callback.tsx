@@ -20,7 +20,9 @@ export const getServerSideProps: GetServerSideProps = async ({
     grant_type: "authorization_code",
   });
   const tokenResults = await fetch(
-    "https://stagingapi.artsy.net/oauth2/access_token",
+    process.env.STAGING_APP_ID
+      ? "https://stagingapi.artsy.net/oauth2/access_token"
+      : "https://api.artsy.net/oauth2/access_token",
     {
       method: "POST",
       headers: {
