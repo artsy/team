@@ -25,10 +25,6 @@ spec:
               value: "3000"
             - name: NODE_ENV
               value: production
-            - name: TRACE_AGENT_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
           envFrom:
             - configMapRef:
                 name: team-environment
@@ -39,10 +35,10 @@ spec:
               containerPort: 3000
           resources:
             requests:
-              cpu: 300m
+              cpu: 200m
               memory: 256Mi
             limits:
-              memory: 1Gi
+              memory: 512Mi
           readinessProbe:
             httpGet:
               port: team-http
@@ -57,42 +53,7 @@ spec:
             preStop:
               exec:
                 command: ["sh", "-c", "sleep 10"]
-        - name: team-nginx
-          image: artsy/docker-nginx:1.14.2
-          ports:
-            - name: nginx-http
-              containerPort: 80
-            - name: nginx-https
-              containerPort: 443
-          readinessProbe:
-            tcpSocket:
-              port: nginx-http
-            initialDelaySeconds: 5
-            periodSeconds: 15
-            timeoutSeconds: 5
-          lifecycle:
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 5 && /usr/sbin/nginx -s quit"]
-          env:
-            - name: "NGINX_DEFAULT_CONF"
-              valueFrom:
-                configMapKeyRef:
-                  name: nginx-config
-                  key: default
-          volumeMounts:
-            - name: nginx-secrets
-              mountPath: /etc/nginx/ssl
-      volumes:
-        - name: nginx-secrets
-          secret:
-            secretName: nginx-secrets
-            defaultMode: 420
-      dnsPolicy: ClusterFirst
-      dnsConfig:
-        options:
-          - name: ndots
-            value: "1"
+      dnsPolicy: Default
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -114,8 +75,8 @@ spec:
     apiVersion: extensions/v1beta1
     kind: Deployment
     name: team-web
-  minReplicas: 2
-  maxReplicas: 6
+  minReplicas: 1
+  maxReplicas: 2
   targetCPUUtilizationPercentage: 70
 
 ---
@@ -126,28 +87,49 @@ metadata:
     app: team
     component: web
     layer: application
-  name: team-web
+  name: team-web-internal
   namespace: default
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:iam::585031190124:server-certificate/2018-01-17_artsy-net-wildcard"
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "5"
 spec:
   ports:
-    - port: 80
+    - port: 3000
       protocol: TCP
       name: http
-      targetPort: nginx-http
-    - port: 443
-      protocol: TCP
-      name: https
-      targetPort: nginx-https
+      targetPort: 3000
   selector:
     app: team
     layer: application
     component: web
-  sessionAffinity: None
-  type: LoadBalancer
+  type: ClusterIP
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: team-external-auth
+  annotations:
+    nginx.ingress.kubernetes.io/auth-url: "http://team-web-internal.default.svc.cluster.local:3000/api/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://api.artsy.net/oauth2/authorize?response_type=code&client_id={{ PRODUCTION_APP_ID }}&redirect_uri=https://$host/oauth2/callback?rd=$escaped_request_uri"
+spec:
+  rules:
+    - host: team.artsy.net
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: team-web-internal
+              servicePort: 3000
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: team-oauth
+spec:
+  rules:
+    - host: team.artsy.net
+      http:
+        paths:
+          - path: /oauth2
+            backend:
+              serviceName: team-web-internal
+              servicePort: 3000

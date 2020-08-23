@@ -13,8 +13,9 @@ export const getServerSideProps: GetServerSideProps = async ({
 }) => {
   requestLog(req, res);
   log.debug("token request params", {
-    client_id: process.env.APP_ID,
-    client_secret: process.env.APP_SECRET,
+    client_id: process.env.STAGING_APP_ID || process.env.PRODUCTION_APP_ID,
+    client_secret:
+      process.env.STAGING_APP_SECRET || process.env.PRODUCTION_APP_SECRET,
     code: query.code,
     grant_type: "authorization_code",
   });
@@ -27,8 +28,9 @@ export const getServerSideProps: GetServerSideProps = async ({
         Accept: "application/json",
       },
       body: JSON.stringify({
-        client_id: process.env.APP_ID,
-        client_secret: process.env.APP_SECRET,
+        client_id: process.env.STAGING_APP_ID || process.env.PRODUCTION_APP_ID,
+        client_secret:
+          process.env.STAGING_APP_SECRET || process.env.PRODUCTION_APP_SECRET,
         code: query.code,
         grant_type: "authorization_code",
       }),
