@@ -1,11 +1,19 @@
 import { AppProps } from "next/app";
 import { Layout } from "@artsy/next-layout";
 import { Theme } from "@artsy/palette";
+import Head from "next/head";
 
-export default function App(props: AppProps) {
+const App = function App(props: AppProps) {
   return (
-    <Theme>
-      <Layout {...props} />
-    </Theme>
+    <>
+      <Head>
+        <title>Team Navigator</title>
+      </Head>
+      <Theme>
+        <Layout {...props} />
+      </Theme>
+    </>
   );
-}
+};
+
+export default App;
