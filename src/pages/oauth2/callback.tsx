@@ -12,13 +12,6 @@ export const getServerSideProps: GetServerSideProps = async ({
   query,
 }) => {
   requestLog(req, res);
-  log.debug("token request params", {
-    client_id: process.env.STAGING_APP_ID || process.env.PRODUCTION_APP_ID,
-    client_secret:
-      process.env.STAGING_APP_SECRET || process.env.PRODUCTION_APP_SECRET,
-    code: query.code,
-    grant_type: "authorization_code",
-  });
   const tokenResults = await fetch(
     process.env.STAGING_APP_ID
       ? "https://stagingapi.artsy.net/oauth2/access_token"
@@ -38,8 +31,6 @@ export const getServerSideProps: GetServerSideProps = async ({
       }),
     }
   ).then((res) => res.json());
-
-  log.debug("tokenResults", tokenResults);
 
   const success = await redirectAuthorizedUsersWithCookie(
     res,
