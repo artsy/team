@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM node:12.14-alpine
 
 # Build environment variables
 ARG SHEETS_URL
