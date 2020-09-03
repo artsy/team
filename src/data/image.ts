@@ -31,21 +31,19 @@ export async function resizeImage(
   if (imageUrl.href.includes("dropbox")) {
     imageUrl.search = "?raw=1";
   } else if (imageUrl.href.includes("drive.google.com")) {
-    const imageId = imageUrl.href
-      .split("https://drive.google.com/file/d/")[1]
-      ?.split("/")[0];
+    const imageId = imageUrl.href.split("/file/d/")[1]?.split("/")[0];
     if (!imageId) {
       throw new Error(
         `Invalid formatted google drive image url: ${imageUrl.href}`
       );
     }
-    imageUrl.href = "https://drive.google.com/uc";
+    imageUrl.href = "https://drive.google.com/a/artsymail.com/uc";
     imageUrl.search = `?id=${imageId}`;
   }
 
   const resizer = sharp().rotate().resize(size, size);
 
-  return fetch(imageUrl.toString()).then((imgRes) => {
+  return fetch(imageUrl.toString(), { redirect: "follow" }).then((imgRes) => {
     return new Promise((resolve, reject) => {
       if (!imgRes.headers.get("content-type")?.includes("image")) {
         reject(`${imageUrl} resulted in invalid content type`);
