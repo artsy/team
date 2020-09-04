@@ -33,6 +33,7 @@ export interface Member {
   preferred_pronouns?: string;
   profileImage?: string;
   manager?: Member;
+  reports?: Member[];
 }
 
 export interface ServerProps {

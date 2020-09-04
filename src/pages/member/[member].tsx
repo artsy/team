@@ -14,7 +14,7 @@ import {
 import Error from "next/error";
 import { normalizeParam } from "utils";
 import { capitalize } from "lodash-es";
-import { useMemo, FC } from "react";
+import { FC, Fragment } from "react";
 import { H1 } from "components/Typography";
 import RouterLink from "next/link";
 import { Member as MemberType, ServerProps } from "../index";
@@ -51,7 +51,7 @@ interface MemberProps {
 
 const Member: FC<MemberProps> = (props) => {
   const { member } = props;
-  const { manager } = member;
+  const { manager, reports } = member;
 
   if (!member) {
     return <Error statusCode={404} />;
@@ -157,7 +157,7 @@ const Member: FC<MemberProps> = (props) => {
             {manager && (
               <Flex mb={0.5}>
                 <Serif size="4" weight="semibold" style={{ flex: 1 }}>
-                  Manager
+                  Manager:
                 </Serif>
                 <Box style={{ flex: 1 }}>
                   <RouterLink
@@ -165,10 +165,32 @@ const Member: FC<MemberProps> = (props) => {
                     as={`/member/${normalizeParam(manager.name)}`}
                     passHref
                   >
-                    <Link>
+                    <Link noUnderline>
                       <Serif size="4">{manager.name}</Serif>
                     </Link>
                   </RouterLink>
+                </Box>
+              </Flex>
+            )}
+            {reports && (
+              <Flex mb={0.5}>
+                <Serif size="4" weight="semibold" style={{ flex: 1 }}>
+                  Reports:
+                </Serif>
+                <Box style={{ flex: 1 }}>
+                  {reports.map((report) => (
+                    <Fragment key={`report-${normalizeParam(report.name)}`}>
+                      <RouterLink
+                        href={"/member/[member]"}
+                        as={`/member/${normalizeParam(report.name)}`}
+                        passHref
+                      >
+                        <Link noUnderline>
+                          <Serif size="4">{report.name}</Serif>
+                        </Link>
+                      </RouterLink>
+                    </Fragment>
+                  ))}
                 </Box>
               </Flex>
             )}
