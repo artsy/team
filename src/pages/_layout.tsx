@@ -2,7 +2,7 @@ import { Box, Flex, space, Serif, Link, color, Spacer } from "@artsy/palette";
 import { Sidebar } from "components/Sidebar";
 import styled from "styled-components";
 import { cloneElement } from "react";
-import { External } from "react-bytesize-icons";
+import { External as ExternalIcon } from "react-bytesize-icons";
 import Error from "next/error";
 
 const PageContainer = styled(Box)`
@@ -29,6 +29,7 @@ export const Layout: React.FC<TeamProps> = ({ children, ...props }) => {
         height="100%"
         position="relative"
         pt={space(1) + 3}
+        pr={3}
       >
         <Flex
           position="fixed"
@@ -47,7 +48,7 @@ export const Layout: React.FC<TeamProps> = ({ children, ...props }) => {
                 Request an update
               </Serif>
               <Spacer mr={0.5} />
-              <External width={10} height={10} color={color("black60")} />
+              <ExternalIcon width={10} height={10} color={color("black60")} />
             </Flex>
           </Link>
         </Flex>
