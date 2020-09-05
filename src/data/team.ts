@@ -2,7 +2,7 @@ import csv from "csvtojson";
 import pLimit from "p-limit";
 import { imageCache } from "utils/models";
 import { hash } from "utils";
-import { capitalize, isEmpty, omit, union, memoize } from "lodash-es";
+import { capitalize, isEmpty, omit, union, memoize, uniqBy } from "lodash-es";
 import { Member } from "../pages/index";
 import { resizeImage } from "./image";
 import { log } from "utils/logger";
@@ -74,9 +74,13 @@ export const getMembers = memoize(async () => {
           member.manager = omit(manager, "manager");
         }
       }
-      const reports = parsed
-        .filter((m) => m.reports_to === member.name)
-        .map((report) => omit(report, ["manager", "reports"]));
+      const reports = uniqBy(
+        parsed
+          .filter((m) => m.reports_to === member.name)
+          .map((report) => omit(report, ["manager", "reports"])),
+        "name"
+      );
+
       if (reports.length > 0) {
         member.reports = reports;
       }
