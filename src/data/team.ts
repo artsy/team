@@ -2,9 +2,10 @@ import csv from "csvtojson";
 import pLimit from "p-limit";
 import { imageCache } from "utils/models";
 import { hash } from "utils";
-import { capitalize, isEmpty, omit, union, memoize } from "lodash-es";
+import { capitalize, isEmpty, omit, union, memoize, uniqBy } from "lodash-es";
 import { Member } from "../pages/index";
 import { resizeImage } from "./image";
+import { log } from "utils/logger";
 
 const limit = pLimit(10);
 
@@ -22,8 +23,8 @@ const getResizedImageUrl = async (
       if (!resizedImageUrl) {
         return;
       }
-      console.log(`resized ${imageUrl} to ${size}`);
-      console.log(resizedImageUrl);
+      log.info(`resized ${imageUrl} to ${size}`);
+      log.info(resizedImageUrl);
       await imageCache.set(cacheKey, resizedImageUrl);
       return resizedImageUrl;
     }
@@ -72,6 +73,16 @@ export const getMembers = memoize(async () => {
         if (!isEmpty(manager)) {
           member.manager = omit(manager, "manager");
         }
+      }
+      const reports = uniqBy(
+        parsed
+          .filter((m) => m.reports_to === member.name)
+          .map((report) => omit(report, ["manager", "reports"])),
+        "name"
+      );
+
+      if (reports.length > 0) {
+        member.reports = reports;
       }
       return member;
     });
