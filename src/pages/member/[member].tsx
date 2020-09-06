@@ -1,26 +1,13 @@
-import { useRouter } from "next/router";
-import { formatDistanceToNow } from "date-fns";
-import {
-  Box,
-  Link,
-  Serif,
-  Flex,
-  ResponsiveImage,
-  Spacer,
-  space,
-  Separator,
-} from "@artsy/palette";
+import { Box, Serif, ResponsiveImage, Separator } from "@artsy/palette";
 import Error from "next/error";
 import { normalizeParam } from "utils";
-import { capitalize } from "lodash-es";
-import { FC, Fragment } from "react";
+import { FC } from "react";
 import { H1 } from "components/Typography";
-import RouterLink from "next/link";
-import { Member as MemberType, ServerProps } from "../index";
+import { Member as MemberType } from "../index";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { getMembers, getMemberProperty } from "../../data/team";
-import { Composition } from "atomic-layout";
 import { MemberDetails } from "components/member/Details";
+import { useAreaGrid } from "components/Grid";
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const members = await getMembers();
@@ -46,71 +33,75 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-const areasSmall = `
-  heading
-  image
-  summary
-  details
-`;
+const area = ["Heading", "Image", "Details", "Summary"] as const;
+type AreaType = typeof area[number];
 
-const areasLarge = `
-  heading heading
-  image details
-  summary details
-`;
+const mobileAreas: AreaType[][] = [
+  ["Heading"],
+  ["Image"],
+  ["Summary"],
+  ["Details"],
+];
+
+const largeAreas: AreaType[][] = [
+  ["Heading", "Heading"],
+  ["Image", "Details"],
+  ["Summary", "Details"],
+];
 
 interface MemberProps {
   member: MemberType;
 }
 
 const Member: FC<MemberProps> = ({ member }) => {
+  const { Grid, Area } = useAreaGrid(area, {
+    _: mobileAreas,
+    xl: largeAreas,
+  });
   if (!member) {
     return <Error statusCode={404} />;
   }
 
   return (
-    <Composition
-      areas={areasSmall}
-      areasXl={areasLarge}
-      templateColsXl="300px auto"
-      gutterRow={space(2)}
-    >
-      {(Areas) => (
-        <>
-          <Areas.Heading>
-            <H1>{member.name}</H1>
-            <Separator mb={2} />
-          </Areas.Heading>
-          <Areas.Image>
-            <Box minWidth="300px" width="300px">
-              {member.profileImage && (
-                <ResponsiveImage src={member.profileImage} />
-              )}
-            </Box>
-          </Areas.Image>
-          <Areas.Summary width="300px">
-            {member.title && (
-              <Serif size="6" mb={0.5}>
-                {member.title}
-              </Serif>
+    <>
+      <Grid
+        gridTemplateColumns={{ xl: "300px auto" }}
+        gridRowGap={2}
+        gridColumnGap={3}
+      >
+        <Area.Heading>
+          <H1>{member.name}</H1>
+          <Separator mb={2} />
+        </Area.Heading>
+        <Area.Image>
+          <Box minWidth="300px" width="300px">
+            {member.profileImage && (
+              <ResponsiveImage src={member.profileImage} />
             )}
-            {member.city && (
-              <Serif size="6" color="black60">
-                {member.city}
-              </Serif>
-            )}
-            {member.role_text && (
-              <Serif size="4" mt={1}>
-                {member.role_text}
-              </Serif>
-            )}
-          </Areas.Summary>
-          <Areas.Details marginLeftXl={space(3)}>
-            <MemberDetails member={member} />
-          </Areas.Details>
-        </>
-      )}
-    </Composition>
+          </Box>
+        </Area.Image>
+        <Area.Summary width="300px">
+          {member.title && (
+            <Serif size="6" mb={0.5}>
+              {member.title}
+            </Serif>
+          )}
+          {member.city && (
+            <Serif size="6" color="black60">
+              {member.city}
+            </Serif>
+          )}
+          {member.role_text && (
+            <Serif size="4" mt={1}>
+              {member.role_text}
+            </Serif>
+          )}
+        </Area.Summary>
+        <Area.Details>
+          <MemberDetails member={member} />
+        </Area.Details>
+      </Grid>
+    </>
   );
 };
 

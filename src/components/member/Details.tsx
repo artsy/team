@@ -1,11 +1,11 @@
 import { Member } from "pages";
-import { Composition } from "atomic-layout";
 import { Serif, Link } from "@artsy/palette";
 import { formatDistanceToNow } from "date-fns";
 import { capitalize } from "lodash-es";
 import RouterLink from "next/link";
 import { normalizeParam } from "utils";
 import { Fragment } from "react";
+import { Grid } from "components/Grid";
 
 interface MemberDetailsProps {
   member: Member;
@@ -19,10 +19,10 @@ export function MemberDetails({ member }: MemberDetailsProps) {
     showTeam && member.subteam && !member.team!.includes(member.subteam);
 
   return (
-    <Composition
-      templateCols="max-content auto"
-      gutterCol="20px"
-      gutterRow="5px"
+    <Grid
+      gridTemplateColumns="max-content auto"
+      gridColumnGap="20px"
+      gridRowGap="5px"
     >
       <>
         {/* Joined time with email link */}
@@ -122,6 +122,6 @@ export function MemberDetails({ member }: MemberDetailsProps) {
           </>
         )}
       </>
-    </Composition>
+    </Grid>
   );
 }

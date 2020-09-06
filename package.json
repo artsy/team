@@ -13,7 +13,6 @@
   "dependencies": {
     "@artsy/next-layout": "^0.2.0",
     "@artsy/next-palette": "^1.0.0",
-    "atomic-layout": "^0.16.2",
     "await-to-js": "^2.1.1",
     "aws-sdk": "^2.668.0",
     "csvtojson": "^2.0.10",
@@ -46,7 +45,7 @@
     "@types/react-bytesize-icons": "^0.6.4",
     "@types/sharp": "^0.25.0",
     "@types/styled-components": "^4",
-    "@types/styled-system": "^3",
+    "@types/styled-system": "^5.1.10",
     "next-transpile-modules": "^4.1.0",
     "typescript": "^3.8.3",
     "typescript-styled-plugin": "^0.15.0"
