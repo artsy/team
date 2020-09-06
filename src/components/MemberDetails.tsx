@@ -56,7 +56,16 @@ export function MemberDetails({ member }: MemberDetailsProps) {
             <Serif size="4" weight="semibold">
               Organization:
             </Serif>
-            <Serif size="4">{member.org}</Serif>
+
+            <RouterLink
+              href={"/org/[org]"}
+              as={`/org/${normalizeParam(member.org!)}`}
+              passHref
+            >
+              <Link noUnderline>
+                <Serif size="4">{member.org}</Serif>
+              </Link>
+            </RouterLink>
           </>
         )}
 
@@ -66,7 +75,16 @@ export function MemberDetails({ member }: MemberDetailsProps) {
             <Serif size="4" weight="semibold">
               Team:
             </Serif>
-            <Serif size="4">{member.team}</Serif>
+
+            <RouterLink
+              href={"/team/[team]"}
+              as={`/team/${normalizeParam(member.team!)}`}
+              passHref
+            >
+              <Link noUnderline>
+                <Serif size="4">{member.team}</Serif>
+              </Link>
+            </RouterLink>
           </>
         )}
 
@@ -76,7 +94,15 @@ export function MemberDetails({ member }: MemberDetailsProps) {
             <Serif size="4" weight="semibold">
               Subteam:
             </Serif>
-            <Serif size="4">{member.subteam}</Serif>
+            <RouterLink
+              href={"/subteam/[subteam]"}
+              as={`/subteam/${normalizeParam(member.subteam!)}`}
+              passHref
+            >
+              <Link noUnderline>
+                <Serif size="4">{member.subteam}</Serif>
+              </Link>
+            </RouterLink>
           </>
         )}
 
