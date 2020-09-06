@@ -36,14 +36,14 @@ export const getStaticPaths: GetStaticPaths = async () => {
 const area = ["Heading", "Image", "Details", "Summary"] as const;
 type AreaType = typeof area[number];
 
-const mobileAreas: AreaType[][] = [
+const defaultLayout: AreaType[][] = [
   ["Heading"],
   ["Image"],
   ["Summary"],
   ["Details"],
 ];
 
-const largeAreas: AreaType[][] = [
+const largeLayout: AreaType[][] = [
   ["Heading", "Heading"],
   ["Image", "Details"],
   ["Summary", "Details"],
@@ -55,8 +55,8 @@ interface MemberProps {
 
 const Member: FC<MemberProps> = ({ member }) => {
   const { Grid, Area } = useAreaGrid(area, {
-    _: mobileAreas,
-    xl: largeAreas,
+    _: defaultLayout,
+    xl: largeLayout,
   });
   if (!member) {
     return <Error statusCode={404} />;
