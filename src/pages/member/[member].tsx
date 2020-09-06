@@ -6,7 +6,7 @@ import { H1 } from "components/Typography";
 import { Member as MemberType } from "../index";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { getMembers, getMemberProperty } from "../../data/team";
-import { MemberDetails } from "components/member/Details";
+import { MemberDetails } from "components/MemberDetails";
 import { useAreaGrid } from "components/Grid";
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
