@@ -1,25 +1,13 @@
-import { useRouter } from "next/router";
-import { formatDistanceToNow } from "date-fns";
-import {
-  Box,
-  Link,
-  Serif,
-  Spinner,
-  Flex,
-  ResponsiveImage,
-  Spacer,
-  space,
-  Separator,
-} from "@artsy/palette";
+import { Box, Serif, ResponsiveImage, Separator } from "@artsy/palette";
 import Error from "next/error";
 import { normalizeParam } from "utils";
-import { capitalize } from "lodash-es";
-import { FC, Fragment } from "react";
+import { FC } from "react";
 import { H1 } from "components/Typography";
-import RouterLink from "next/link";
-import { Member as MemberType, ServerProps } from "../index";
+import { Member as MemberType } from "../index";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { getMembers, getMemberProperty } from "../../data/team";
+import { MemberDetails } from "components/MemberDetails";
+import { useAreaGrid } from "components/Grid";
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const members = await getMembers();
@@ -45,35 +33,54 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
+const area = ["Heading", "Image", "Details", "Summary"] as const;
+type AreaType = typeof area[number];
+
+const mobileAreas: AreaType[][] = [
+  ["Heading"],
+  ["Image"],
+  ["Summary"],
+  ["Details"],
+];
+
+const largeAreas: AreaType[][] = [
+  ["Heading", "Heading"],
+  ["Image", "Details"],
+  ["Summary", "Details"],
+];
+
 interface MemberProps {
   member: MemberType;
 }
 
-const Member: FC<MemberProps> = (props) => {
-  const { member } = props;
-  const { manager, reports } = member;
-
+const Member: FC<MemberProps> = ({ member }) => {
+  const { Grid, Area } = useAreaGrid(area, {
+    _: mobileAreas,
+    xl: largeAreas,
+  });
   if (!member) {
     return <Error statusCode={404} />;
   }
 
-  const showOrg = !!member.org;
-  const showTeam = showOrg && member.team && !member.org?.includes(member.team);
-  const showSubteam =
-    showTeam && member.subteam && !member.team!.includes(member.subteam);
-
   return (
     <>
-      <H1>{member.name}</H1>
-      <Separator mb={space(4) + 5} />
-      <Flex>
-        <Flex flexDirection="column" flexBasis="min-content">
-          <Box minWidth="300px" width="300px" mb={2}>
+      <Grid
+        gridTemplateColumns={{ xl: "300px auto" }}
+        gridRowGap={2}
+        gridColumnGap={3}
+      >
+        <Area.Heading>
+          <H1>{member.name}</H1>
+          <Separator mb={2} />
+        </Area.Heading>
+        <Area.Image>
+          <Box minWidth="300px" width="300px">
             {member.profileImage && (
               <ResponsiveImage src={member.profileImage} />
             )}
           </Box>
-
+        </Area.Image>
+        <Area.Summary width="300px">
           {member.title && (
             <Serif size="6" mb={0.5}>
               {member.title}
@@ -84,121 +91,16 @@ const Member: FC<MemberProps> = (props) => {
               {member.city}
             </Serif>
           )}
-          <Spacer mb={2} />
-
           {member.role_text && (
-            <Serif size="4" mb={2}>
+            <Serif size="4" mt={1}>
               {member.role_text}
             </Serif>
           )}
-          <Flex flexDirection="column">
-            {member.start_date && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" mr={0.5} style={{ flex: 1 }}>
-                  Joined:
-                </Serif>
-                <Link
-                  href={member.intro_email}
-                  underlineBehavior="hover"
-                  mr={0.5}
-                  style={{ flex: 1 }}
-                >
-                  <Flex alignItems="center">
-                    <Serif size="4" mr={0.5}>
-                      {capitalize(
-                        formatDistanceToNow(new Date(member.start_date))
-                      )}{" "}
-                      ago
-                    </Serif>
-                  </Flex>
-                </Link>
-              </Flex>
-            )}
-            {member.preferred_pronouns && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" mr={0.5} style={{ flex: 1 }}>
-                  Pronouns:
-                </Serif>
-                <Serif size="4" mr={0.5} style={{ flex: 1 }}>
-                  {member.preferred_pronouns}
-                </Serif>
-              </Flex>
-            )}
-            {showOrg && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" mr={0.5} style={{ flex: 1 }}>
-                  Organization:
-                </Serif>
-                <Serif size="4" mr={0.5} style={{ flex: 1 }}>
-                  {member.org}
-                </Serif>
-              </Flex>
-            )}
-            {showTeam && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" mr={0.5} style={{ flex: 1 }}>
-                  Team:
-                </Serif>{" "}
-                <Serif size="4" mr={0.5} style={{ flex: 1 }}>
-                  {member.team}
-                </Serif>
-              </Flex>
-            )}
-            {showSubteam && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" mr={0.5} style={{ flex: 1 }}>
-                  Subteam:
-                </Serif>
-                <Serif size="4" mr={0.5} style={{ flex: 1 }}>
-                  {member.subteam}
-                </Serif>
-              </Flex>
-            )}
-            {manager && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" style={{ flex: 1 }}>
-                  Manager:
-                </Serif>
-                <Box style={{ flex: 1 }}>
-                  <RouterLink
-                    href={"/member/[member]"}
-                    as={`/member/${normalizeParam(manager.name)}`}
-                    passHref
-                  >
-                    <Link noUnderline>
-                      <Serif size="4">{manager.name}</Serif>
-                    </Link>
-                  </RouterLink>
-                </Box>
-              </Flex>
-            )}
-            {reports && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" style={{ flex: 1 }}>
-                  Reports:
-                </Serif>
-                <Box style={{ flex: 1 }}>
-                  {reports.map((report) => (
-                    <Fragment key={`report-${normalizeParam(report.name)}`}>
-                      <RouterLink
-                        href={"/member/[member]"}
-                        as={`/member/${normalizeParam(report.name)}`}
-                        passHref
-                      >
-                        <Link noUnderline>
-                          <Serif size="4">{report.name}</Serif>
-                        </Link>
-                      </RouterLink>
-                    </Fragment>
-                  ))}
-                </Box>
-              </Flex>
-            )}
-          </Flex>
-          <Flex flexDirection="column"></Flex>
-        </Flex>
-        <Flex flexDirection="column" ml={3} width="500px"></Flex>
-      </Flex>
+        </Area.Summary>
+        <Area.Details>
+          <MemberDetails member={member} />
+        </Area.Details>
+      </Grid>
     </>
   );
 };
