@@ -11,6 +11,11 @@ Team Nav started off as a hackathon project way back in 2015. It's evolved a lot
 _For Artsy Employees_
 
 1. Copy down the `.env` file from citadel (You'll need proper access)
+
+```
+aws s3 cp .env s3://artsy-citadel/dev/.env.team
+```
+
 2. Install dependencies and start the service in dev mode
 
 ```
