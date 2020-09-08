@@ -17,6 +17,10 @@ _For Artsy Employees_
 yarn && yarn dev
 ```
 
+## Deploying
+
+Merged PRs to `artsy/team#master` are automatically deployed to staging; PRs from `staging` to `release` are automatically deployed to production. [Start a deploy...](https://github.com/artsy/team/compare/release...staging?expand=1)
+
 ## About Artsy
 
 <a href="https://www.artsy.net/">
