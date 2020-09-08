@@ -1,13 +1,17 @@
-import { Box, Serif, ResponsiveImage, Separator } from "@artsy/palette";
+import { Flex, Box, Serif, ResponsiveImage, Separator } from "@artsy/palette";
 import Error from "next/error";
-import { normalizeParam } from "utils";
-import { FC } from "react";
+import { normalizeParam, useDelay } from "utils";
+import { FC, useEffect, useState } from "react";
 import { H1 } from "components/Typography";
 import { Member as MemberType } from "../index";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { getMembers, getMemberProperty } from "../../data/team";
 import { MemberDetails } from "components/MemberDetails";
 import { useAreaGrid } from "components/Grid";
+import { isWeekOf, relativeDaysTillAnniversary, isDayOf } from "utils/date";
+import { AwardIcon } from "components/AwardIcon";
+import { useWindowSize } from "@react-hook/window-size";
+import Confetti from "react-confetti";
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const members = await getMembers();
@@ -54,6 +58,9 @@ interface MemberProps {
 }
 
 const Member: FC<MemberProps> = ({ member }) => {
+  const finished = useDelay(10);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [width, height] = useWindowSize({ initialWidth: 0, initialHeight: 0 });
   const { Grid, Area } = useAreaGrid(area, {
     _: defaultLayout,
     xl: largeLayout,
@@ -62,15 +69,43 @@ const Member: FC<MemberProps> = ({ member }) => {
     return <Error statusCode={404} />;
   }
 
+  useEffect(() => {
+    if (member.start_date && !finished) {
+      setShowConfetti(true);
+    }
+  }, [setShowConfetti, member.start_date, finished]);
+
   return (
     <>
+      {showConfetti && isDayOf(new Date(member.start_date!)) && (
+        <Confetti
+          width={width}
+          height={height}
+          recycle={!finished}
+          numberOfPieces={400}
+        />
+      )}
       <Grid
         gridTemplateColumns={{ xl: "300px auto" }}
         gridRowGap={2}
         gridColumnGap={3}
       >
         <Area.Heading>
-          <H1>{member.name}</H1>
+          <Flex alignItems="center" justifyContent="space-between">
+            <H1>{member.name}</H1>
+            {member.start_date && isWeekOf(new Date(member.start_date)) && (
+              <>
+                <Flex ml={4}>
+                  <AwardIcon />
+                  <Serif size="4">
+                    Artsyversary{" "}
+                    {relativeDaysTillAnniversary(new Date(member.start_date))}
+                  </Serif>
+                </Flex>
+              </>
+            )}
+          </Flex>
+
           <Separator mb={2} />
         </Area.Heading>
         <Area.Image>
