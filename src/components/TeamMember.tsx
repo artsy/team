@@ -6,6 +6,8 @@ import RouterLink from "next/link";
 import { Avatar, Box, Serif, Flex, Link } from "@artsy/palette";
 import styled from "styled-components";
 import { color } from "styled-system";
+import { AwardIcon } from "./AwardIcon";
+import { isWeekOf } from "utils/date";
 
 const TeamMemberContainer = styled(Flex)`
   border-radius: 5px;
@@ -18,6 +20,7 @@ const TeamMemberContainer = styled(Flex)`
 
 const AvatarContainer = styled(Box)`
   flex-shrink: 0;
+  position: relative;
 `;
 
 const location = ({ city, floor }: { city?: string; floor?: string }) =>
@@ -40,18 +43,29 @@ export const TeamMember: FC<TeamMemberProps> = (props) => {
         <TeamMemberContainer width="390px" p={1} ml={(!showAvatar && -1) || 0}>
           {showAvatar && (
             <AvatarContainer mr={1}>
-              {member.avatar ? (
-                <Avatar
-                  size="md"
-                  src={member.avatar}
-                  lazyLoad={true}
-                  renderFallback={({ diameter }) => (
-                    <AvatarFallback diameter={diameter} />
-                  )}
-                />
-              ) : (
-                <AvatarFallback diameter={"100px"} />
-              )}
+              <>
+                {member.start_date && isWeekOf(new Date(member.start_date)) && (
+                  <AwardIcon
+                    color="#6E1FFF"
+                    bottom="0px"
+                    right="0px"
+                    position="absolute"
+                    zIndex="10"
+                  />
+                )}
+                {member.avatar ? (
+                  <Avatar
+                    size="md"
+                    src={member.avatar}
+                    lazyLoad={true}
+                    renderFallback={({ diameter }) => (
+                      <AvatarFallback diameter={diameter} />
+                    )}
+                  />
+                ) : (
+                  <AvatarFallback diameter={"100px"} />
+                )}
+              </>
             </AvatarContainer>
           )}
 
