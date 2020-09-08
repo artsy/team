@@ -13,7 +13,7 @@ _For Artsy Employees_
 1. Copy down the `.env` file from citadel (You'll need proper access)
 
 ```
-aws s3 cp .env s3://artsy-citadel/dev/.env.team
+aws s3 cp s3://artsy-citadel/dev/.env.team .env
 ```
 
 2. Install dependencies and start the service in dev mode
