@@ -1,6 +1,7 @@
 import { IncomingMessage } from "http";
 import crypto from "crypto";
-import { NextRouter, useRouter } from "next/router";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 export const hash = (source: string) =>
   crypto.createHash("md5").update(source).digest("hex");
@@ -30,4 +31,17 @@ export const getSearchParam = (url: string) => {
 export const useSearchParam = () => {
   const router = useRouter();
   return getSearchParam(router.asPath);
+};
+
+export const useDelay = (delay: number) => {
+  const [finished, setFinished] = useState(false);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setFinished(true);
+    }, delay * 1000);
+    return () => clearTimeout(timeout);
+  }, [delay]);
+
+  return finished;
 };

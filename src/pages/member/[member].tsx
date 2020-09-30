@@ -1,25 +1,17 @@
-import { useRouter } from "next/router";
-import { formatDistanceToNow } from "date-fns";
-import {
-  Box,
-  Link,
-  Serif,
-  Spinner,
-  Flex,
-  ResponsiveImage,
-  Spacer,
-  space,
-  Separator,
-} from "@artsy/palette";
+import { Flex, Box, Serif, ResponsiveImage, Separator } from "@artsy/palette";
 import Error from "next/error";
-import { normalizeParam } from "utils";
-import { capitalize } from "lodash-es";
-import { useMemo, FC } from "react";
+import { normalizeParam, useDelay } from "utils";
+import { FC, useEffect, useState } from "react";
 import { H1 } from "components/Typography";
-import RouterLink from "next/link";
-import { Member as MemberType, ServerProps } from "../index";
+import { Member as MemberType } from "../index";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { getMembers, getMemberProperty } from "../../data/team";
+import { MemberDetails } from "components/MemberDetails";
+import { useAreaGrid } from "components/Grid";
+import { isWeekOf, relativeDaysTillAnniversary, isDayOf } from "utils/date";
+import { AwardIcon } from "components/AwardIcon";
+import { useWindowSize } from "@react-hook/window-size";
+import Confetti from "react-confetti";
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const members = await getMembers();
@@ -45,35 +37,85 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
+const area = ["Heading", "Image", "Details", "Summary"] as const;
+type AreaType = typeof area[number];
+
+const defaultLayout: AreaType[][] = [
+  ["Heading"],
+  ["Image"],
+  ["Summary"],
+  ["Details"],
+];
+
+const largeLayout: AreaType[][] = [
+  ["Heading", "Heading"],
+  ["Image", "Details"],
+  ["Summary", "Details"],
+];
+
 interface MemberProps {
   member: MemberType;
 }
 
-const Member: FC<MemberProps> = (props) => {
-  const { member } = props;
-  const { manager } = member;
-
+const Member: FC<MemberProps> = ({ member }) => {
+  const finished = useDelay(10);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [width, height] = useWindowSize({ initialWidth: 0, initialHeight: 0 });
+  const { Grid, Area } = useAreaGrid(area, {
+    _: defaultLayout,
+    xl: largeLayout,
+  });
   if (!member) {
     return <Error statusCode={404} />;
   }
 
-  const showOrg = !!member.org;
-  const showTeam = showOrg && member.team && !member.org?.includes(member.team);
-  const showSubteam =
-    showTeam && member.subteam && !member.team!.includes(member.subteam);
+  useEffect(() => {
+    if (member.start_date && !finished) {
+      setShowConfetti(true);
+    }
+  }, [setShowConfetti, member.start_date, finished]);
 
   return (
     <>
-      <H1>{member.name}</H1>
-      <Separator mb={space(4) + 5} />
-      <Flex>
-        <Flex flexDirection="column" flexBasis="min-content">
-          <Box minWidth="300px" width="300px" mb={2}>
+      {showConfetti && isDayOf(new Date(member.start_date!)) && (
+        <Confetti
+          width={width}
+          height={height}
+          recycle={!finished}
+          numberOfPieces={400}
+        />
+      )}
+      <Grid
+        gridTemplateColumns={{ xl: "300px auto" }}
+        gridRowGap={2}
+        gridColumnGap={3}
+      >
+        <Area.Heading>
+          <Flex alignItems="center" justifyContent="space-between">
+            <H1>{member.name}</H1>
+            {member.start_date && isWeekOf(new Date(member.start_date)) && (
+              <>
+                <Flex ml={4}>
+                  <AwardIcon />
+                  <Serif size="4">
+                    Artsyversary{" "}
+                    {relativeDaysTillAnniversary(new Date(member.start_date))}
+                  </Serif>
+                </Flex>
+              </>
+            )}
+          </Flex>
+
+          <Separator mb={2} />
+        </Area.Heading>
+        <Area.Image>
+          <Box minWidth="300px" width="300px">
             {member.profileImage && (
               <ResponsiveImage src={member.profileImage} />
             )}
           </Box>
-
+        </Area.Image>
+        <Area.Summary width="300px">
           {member.title && (
             <Serif size="6" mb={0.5}>
               {member.title}
@@ -84,99 +126,16 @@ const Member: FC<MemberProps> = (props) => {
               {member.city}
             </Serif>
           )}
-          <Spacer mb={2} />
-
           {member.role_text && (
-            <Serif size="4" mb={2}>
+            <Serif size="4" mt={1}>
               {member.role_text}
             </Serif>
           )}
-          <Flex flexDirection="column">
-            {member.start_date && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" mr={0.5} style={{ flex: 1 }}>
-                  Joined:
-                </Serif>
-                <Link
-                  href={member.intro_email}
-                  underlineBehavior="hover"
-                  mr={0.5}
-                  style={{ flex: 1 }}
-                >
-                  <Flex alignItems="center">
-                    <Serif size="4" mr={0.5}>
-                      {capitalize(
-                        formatDistanceToNow(new Date(member.start_date))
-                      )}{" "}
-                      ago
-                    </Serif>
-                  </Flex>
-                </Link>
-              </Flex>
-            )}
-            {member.preferred_pronouns && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" mr={0.5} style={{ flex: 1 }}>
-                  Pronouns:
-                </Serif>
-                <Serif size="4" mr={0.5} style={{ flex: 1 }}>
-                  {member.preferred_pronouns}
-                </Serif>
-              </Flex>
-            )}
-            {showOrg && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" mr={0.5} style={{ flex: 1 }}>
-                  Organization:
-                </Serif>
-                <Serif size="4" mr={0.5} style={{ flex: 1 }}>
-                  {member.org}
-                </Serif>
-              </Flex>
-            )}
-            {showTeam && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" mr={0.5} style={{ flex: 1 }}>
-                  Team:
-                </Serif>{" "}
-                <Serif size="4" mr={0.5} style={{ flex: 1 }}>
-                  {member.team}
-                </Serif>
-              </Flex>
-            )}
-            {showSubteam && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" mr={0.5} style={{ flex: 1 }}>
-                  Subteam:
-                </Serif>
-                <Serif size="4" mr={0.5} style={{ flex: 1 }}>
-                  {member.subteam}
-                </Serif>
-              </Flex>
-            )}
-            {manager && (
-              <Flex mb={0.5}>
-                <Serif size="4" weight="semibold" style={{ flex: 1 }}>
-                  Manager
-                </Serif>
-                <Box style={{ flex: 1 }}>
-                  <RouterLink
-                    href={"/member/[member]"}
-                    as={`/member/${normalizeParam(manager.name)}`}
-                    passHref
-                  >
-                    <Link>
-                      <Serif size="4">{manager.name}</Serif>
-                    </Link>
-                  </RouterLink>
-                </Box>
-              </Flex>
-            )}
-          </Flex>
-          <Flex flexDirection="column"></Flex>
-        </Flex>
-        <Flex flexDirection="column" ml={3} width="500px"></Flex>
-      </Flex>
+        </Area.Summary>
+        <Area.Details>
+          <MemberDetails member={member} />
+        </Area.Details>
+      </Grid>
     </>
   );
 };

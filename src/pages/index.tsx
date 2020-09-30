@@ -1,11 +1,10 @@
-import { Avatar, Box, Serif, Flex, Separator } from "@artsy/palette";
+import { Box, Flex, Separator } from "@artsy/palette";
 import { GetStaticProps } from "next";
 import { H1 } from "components/Typography";
-import { useRouter } from "next/router";
 import { NoResults as DefaultNoResults } from "components/NoResults";
 import { FC } from "react";
 import Error from "next/error";
-import { firstIfMany, useSearchParam } from "utils";
+import { useSearchParam } from "utils";
 import { getMembers } from "../data/team";
 import { TeamMember } from "../components/TeamMember";
 
@@ -33,6 +32,7 @@ export interface Member {
   preferred_pronouns?: string;
   profileImage?: string;
   manager?: Member;
+  reports?: Member[];
 }
 
 export interface ServerProps {

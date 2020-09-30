@@ -8,11 +8,11 @@ import { GetStaticProps, GetStaticPaths } from "next";
 import { getMembers, getMemberProperty } from "../../data/team";
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const teams = await getMemberProperty("team");
+  const subteams = await getMemberProperty("subteam");
   return {
-    paths: teams.map((team) => ({
+    paths: subteams.map((subteam) => ({
       params: {
-        team: normalizeParam(team),
+        subteam: normalizeParam(subteam),
       },
     })),
     fallback: false,
@@ -28,19 +28,19 @@ export const getStaticProps: GetStaticProps = async () => {
   };
 };
 
-const Team: FC<ServerProps> = (props) => {
+const Subteam: FC<ServerProps> = (props) => {
   const router = useRouter();
 
   if (!props.data) {
     return <Error statusCode={500} />;
   }
 
-  const team = router.query.team;
-  let formattedTeam = "";
+  const subteam = router.query.subteam;
+  let formattedSubteam = "";
 
   const data = props.data.filter((member) => {
-    if (member.team && normalizeParam(member.team) === team) {
-      formattedTeam = member.team;
+    if (member.subteam && normalizeParam(member.subteam) === subteam) {
+      formattedSubteam = member.subteam;
       return true;
     }
     return false;
@@ -49,11 +49,11 @@ const Team: FC<ServerProps> = (props) => {
   return (
     <TeamNav
       {...props}
-      title={formattedTeam}
+      title={formattedSubteam}
       data={data}
-      NoResults={() => <NoResults page={formattedTeam} />}
+      NoResults={() => <NoResults page={formattedSubteam} />}
     />
   );
 };
 
-export default Team;
+export default Subteam;
