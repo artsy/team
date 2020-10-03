@@ -21,6 +21,7 @@ const getResizedImageUrl = async (
   return limit(() => resizeImage(new URL(imageUrl), size)).then(
     async function afterResizingImage(resizedImageUrl) {
       if (!resizedImageUrl) {
+        log.error(`No image URL provided`);
         return;
       }
       log.info(`resized ${imageUrl} to ${size}`);
@@ -63,7 +64,8 @@ export const getMembers = memoize(async () => {
         try {
           member.profileImage = await getResizedImageUrl(member.headshot, 500);
           member.avatar = await getResizedImageUrl(member.headshot, 200);
-        } catch {
+        } catch (error) {
+          log.error(error);
           member.profileImage = "";
           member.avatar = "";
         }
