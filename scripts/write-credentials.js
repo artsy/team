@@ -5,5 +5,5 @@ const fs = require("fs");
 
 fs.writeFileSync(
   ".google-api-creds.json",
-  Buffer.from(process.env.SHEET_CREDS, "base64").toString("ascii")
+  Buffer.from(process.env.G_CREDS, "base64").toString("ascii")
 );
