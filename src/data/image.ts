@@ -69,7 +69,7 @@ export async function resizeImage(
 
   const contentType = file.headers["content-type"];
   const extension =
-    contentType.includes("image") && `.${contentType.split("image/")[1]}`;
+    contentType.includes("image") && contentType.split("image/")[1];
 
   if (!extension) throw new Error(`No valid extension for ${imageUrl.href}`);
 
