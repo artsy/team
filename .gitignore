@@ -4,3 +4,4 @@ node_modules
 .env
 vars.yml
 .hokusai-tmp
+.google-api-creds.json

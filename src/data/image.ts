@@ -1,7 +1,23 @@
 import sharp from "sharp";
 import S3 from "aws-sdk/clients/s3";
 import stream from "stream";
-import { hash } from "utils";
+import { google } from "googleapis";
+
+const drive = google.drive({
+  version: "v3",
+  auth: new google.auth.GoogleAuth({
+    keyFile: "./.google-api-creds.json",
+    scopes: [
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/drive.appdata",
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/drive.metadata",
+      "https://www.googleapis.com/auth/drive.metadata.readonly",
+      "https://www.googleapis.com/auth/drive.photos.readonly",
+      "https://www.googleapis.com/auth/drive.readonly",
+    ],
+  }),
+});
 
 const streamToS3 = (
   s3: S3,
@@ -28,42 +44,40 @@ export async function resizeImage(
     secretAccessKey: process.env.SECRET_ACCESS_KEY,
     region: process.env.REGION,
   });
-  if (imageUrl.href.includes("dropbox")) {
-    imageUrl.search = "?raw=1";
-  } else if (imageUrl.href.includes("drive.google.com")) {
-    const imageId = imageUrl.href.split("/file/d/")[1]?.split("/")[0];
-    if (!imageId) {
-      throw new Error(
-        `Invalid formatted google drive image url: ${imageUrl.href}`
-      );
-    }
-    imageUrl.href = "https://drive.google.com/a/artsymail.com/uc";
-    imageUrl.search = `?id=${imageId}`;
+
+  if (!imageUrl.href.startsWith("https://drive.google.com")) {
+    throw new Error(`Error processing ${imageUrl.href}, not a drive url`);
+  }
+
+  const imageId = imageUrl.href.split("/file/d/")[1]?.split("/")[0];
+
+  if (!imageId) {
+    throw new Error(
+      `Invalid formatted google drive image url: ${imageUrl.href}`
+    );
   }
 
   const resizer = sharp().rotate().resize(size, size);
 
-  return fetch(imageUrl.toString(), { redirect: "follow" }).then((imgRes) => {
-    return new Promise((resolve, reject) => {
-      if (!imgRes.headers.get("content-type")?.includes("image")) {
-        reject(`${imageUrl} resulted in invalid content type`);
-        return;
-      }
-      if (imgRes.status >= 400) {
-        reject(`${imageUrl} was not found`);
-        return;
-      }
-      (imgRes.body as any).pipe(resizer).pipe(
-        streamToS3(
-          s3,
-          `team/${hash(
-            imageUrl.href + "?size=" + size
-          )}.${imageUrl.pathname.split(".").pop()}`,
-          (err, data) => {
-            err ? reject(err) : resolve(data.Location);
-          }
-        )
-      );
-    });
+  const file = await drive.files.get(
+    {
+      fileId: imageId,
+      alt: "media",
+    },
+    { responseType: "stream" }
+  );
+
+  const contentType = file.headers["content-type"];
+  const extension =
+    contentType.includes("image") && contentType.split("image/")[1];
+
+  if (!extension) throw new Error(`No valid extension for ${imageUrl.href}`);
+
+  return new Promise((resolve, reject) => {
+    file.data.pipe(resizer).pipe(
+      streamToS3(s3, `team/${imageId}-${size}.${extension}`, (err, data) => {
+        err ? reject(err) : resolve(data.Location);
+      })
+    );
   });
 }

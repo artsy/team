@@ -2,6 +2,7 @@ FROM node:12.14-alpine
 
 # Build environment variables
 ARG SHEETS_URL
+ARG G_CREDS
 ARG ACCESS_KEY_ID
 ARG SECRET_ACCESS_KEY
 ARG REGION
