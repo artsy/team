@@ -4,10 +4,10 @@
   "description": "",
   "scripts": {
     "write-creds": "node ./scripts/write-credentials",
-    "prestart": "yarn write-creds",
     "start": "next start",
     "predev": "dotenv yarn write-creds",
     "dev": "next dev",
+    "prebuild": "dotenv yarn write-creds",
     "build": "next build",
     "type-check": "tsc",
     "logs:staging": "hokusai staging logs | grep '^{' | npx miami-vice",
