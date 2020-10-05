@@ -81,8 +81,11 @@ export const imageCache = {
     } while (cursor);
     return allItems;
   },
-  clear() {
-    return this.list();
+  async clear() {
+    const images = await this.list();
+    for (let image of images) {
+      await this.delete(image.id);
+    }
   },
   async get(id: string): Promise<string | undefined> {
     return (await metadata.get(`image-${id}`))?.imageUrl;
