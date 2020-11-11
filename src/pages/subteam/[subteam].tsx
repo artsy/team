@@ -39,11 +39,12 @@ const Subteam: FC<ServerProps> = (props) => {
   let formattedSubteam = "";
 
   const data = props.data.filter((member) => {
-    if (member.subteam && normalizeParam(member.subteam) === subteam) {
-      formattedSubteam = member.subteam;
-      return true;
-    }
-    return false;
+    const possibleSubteam = member.subteams.find(
+      (t) => normalizeParam(t) === subteam
+    );
+    if (!possibleSubteam) return false;
+    formattedSubteam = possibleSubteam;
+    return true;
   });
 
   return (

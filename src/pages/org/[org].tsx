@@ -9,9 +9,9 @@ import { getMembers, getMemberProperty } from "../../data/team";
 import { GetStaticProps, GetStaticPaths } from "next";
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const orgs = await getMemberProperty("org");
+  const orgs = await getMemberProperty("orgs");
   return {
-    paths: orgs.map((org) => ({
+    paths: orgs.flat().map((org) => ({
       params: {
         org: normalizeParam(org),
       },
@@ -39,15 +39,20 @@ const Organization: FC<ServerProps> = (props) => {
     return <Error statusCode={500} />;
   }
 
-  const org = router.query.org;
+  const org = Array.isArray(router.query.org)
+    ? router.query.org[0]
+    : router.query.org;
   let formattedOrg = "";
 
+  if (!org) {
+    return <Error statusCode={404} />;
+  }
+
   const data = props.data.filter((member) => {
-    if (member.org && normalizeParam(member.org) === org) {
-      formattedOrg = member.org;
-      return true;
-    }
-    return false;
+    const possibleOrg = member.orgs.find((t) => normalizeParam(t) === org);
+    if (!possibleOrg) return false;
+    formattedOrg = possibleOrg;
+    return true;
   });
 
   return (

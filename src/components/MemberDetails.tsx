@@ -12,11 +12,16 @@ interface MemberDetailsProps {
 }
 
 export function MemberDetails({ member }: MemberDetailsProps) {
-  const { manager, reports } = member;
-  const showOrg = !!member.org;
-  const showTeam = showOrg && member.team && !member.org?.includes(member.team);
-  const showSubteam =
-    showTeam && member.subteam && !member.team!.includes(member.subteam);
+  const { manager, reports, orgs, teams, subteams } = member;
+  const showOrgs = member.orgs.length > 0;
+  const showTeams =
+    showOrgs &&
+    teams.length > 0 &&
+    teams.filter((team) => !orgs.includes(team)).length > 0;
+  const showSubteams =
+    showTeams &&
+    subteams.length > 0 &&
+    subteams.filter((subteam) => !teams.includes(subteam)).length > 0;
 
   return (
     <Grid
@@ -51,58 +56,66 @@ export function MemberDetails({ member }: MemberDetailsProps) {
         )}
 
         {/* Show organization */}
-        {showOrg && (
+        {showOrgs && (
           <>
             <Serif size="4" weight="semibold">
               Organization:
             </Serif>
-
-            <RouterLink
-              href={"/org/[org]"}
-              as={`/org/${normalizeParam(member.org!)}`}
-              passHref
-            >
-              <Link noUnderline>
-                <Serif size="4">{member.org}</Serif>
-              </Link>
-            </RouterLink>
+            <span>
+              {orgs.map((org) => (
+                <Fragment key={`org-${normalizeParam(org)}`}>
+                  <RouterLink href={`/org/${normalizeParam(org)}`} passHref>
+                    <Link noUnderline>
+                      <Serif size="4">{org}</Serif>
+                    </Link>
+                  </RouterLink>
+                </Fragment>
+              ))}
+            </span>
           </>
         )}
 
         {/* Show team */}
-        {showTeam && (
+        {showTeams && (
           <>
             <Serif size="4" weight="semibold">
               Team:
             </Serif>
 
-            <RouterLink
-              href={"/team/[team]"}
-              as={`/team/${normalizeParam(member.team!)}`}
-              passHref
-            >
-              <Link noUnderline>
-                <Serif size="4">{member.team}</Serif>
-              </Link>
-            </RouterLink>
+            <span>
+              {teams.map((team) => (
+                <Fragment key={`team-${normalizeParam(team)}`}>
+                  <RouterLink href={`/team/${normalizeParam(team)}`} passHref>
+                    <Link noUnderline>
+                      <Serif size="4">{team}</Serif>
+                    </Link>
+                  </RouterLink>
+                </Fragment>
+              ))}
+            </span>
           </>
         )}
 
         {/* Show subteam */}
-        {showSubteam && (
+        {showSubteams && (
           <>
             <Serif size="4" weight="semibold">
               Subteam:
             </Serif>
-            <RouterLink
-              href={"/subteam/[subteam]"}
-              as={`/subteam/${normalizeParam(member.subteam!)}`}
-              passHref
-            >
-              <Link noUnderline>
-                <Serif size="4">{member.subteam}</Serif>
-              </Link>
-            </RouterLink>
+            <span>
+              {subteams.map((subteam) => (
+                <Fragment key={`subteam-${normalizeParam(subteam)}`}>
+                  <RouterLink
+                    href={`/subteam/${normalizeParam(subteam)}`}
+                    passHref
+                  >
+                    <Link noUnderline>
+                      <Serif size="4">{subteam}</Serif>
+                    </Link>
+                  </RouterLink>
+                </Fragment>
+              ))}
+            </span>
           </>
         )}
 

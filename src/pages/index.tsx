@@ -11,9 +11,15 @@ import { TeamMember } from "../components/TeamMember";
 export interface Member {
   name: string;
   title?: string;
+  /** @deprecated prefer `orgs` */
   org?: string;
+  orgs: string[];
+  /** @deprecated prefer `teams` */
   team?: string;
+  teams: string[];
+  /** @deprecated prefer `subteams` */
   subteam?: string;
+  subteams: string[];
   reports_to?: string;
   team_rank?: number;
   email?: string;
