@@ -64,8 +64,6 @@ const TeamNav: FC<ServerProps> = (props) => {
   const { title, data, NoResults = DefaultNoResults } = props;
   const searchParam = useSearchParam();
 
-  console.log("data", data);
-
   if (!data) {
     return <Error statusCode={500} />;
   }
