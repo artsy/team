@@ -39,11 +39,10 @@ const Team: FC<ServerProps> = (props) => {
   let formattedTeam = "";
 
   const data = props.data.filter((member) => {
-    if (member.team && normalizeParam(member.team) === team) {
-      formattedTeam = member.team;
-      return true;
-    }
-    return false;
+    const possibleTeam = member.teams.find((t) => normalizeParam(t) === team);
+    if (!possibleTeam) return false;
+    formattedTeam = possibleTeam;
+    return true;
   });
 
   return (

@@ -41,15 +41,31 @@ const search = debounce((router: NextRouter, searchTerm: string) => {
 
 const aggregateMemberLinks = (
   members: Member[],
-  field: string,
+  field: keyof Member,
   prefix: string
 ) => {
-  return Object.entries(groupBy(members, field))
+  const isArrayType = Array.isArray(members[0][field]);
+  let aggregateGroup: [fieldValue: string, group: Member[]][] = [];
+  if (isArrayType) {
+    let fieldAggregate: string[] = Array.from(
+      new Set(members.flatMap((member) => member[field]))
+    ) as string[];
+    aggregateGroup = fieldAggregate.map((fieldValue) => [
+      fieldValue,
+      members.filter((member) =>
+        (member[field] as string[]).includes(fieldValue)
+      ),
+    ]);
+  }
+
+  return (isArrayType
+    ? aggregateGroup
+    : Object.entries(groupBy(members, field))
+  )
     .map(([fieldValue, group]) => ({
       text: fieldValue,
       count: (group as any)?.length,
-      href: `/${prefix}/[${prefix}]`,
-      as: `/${prefix}/${normalizeParam(fieldValue)}`,
+      href: `/${prefix}/${normalizeParam(fieldValue)}`,
     }))
     .filter(({ text }) => text);
 };
@@ -152,11 +168,11 @@ export const Sidebar = ({ data }: SidebarProps) => {
       />
       <LinkSection
         title="Organizations"
-        links={aggregateMemberLinks(data, "org", "org")}
+        links={aggregateMemberLinks(data, "orgs", "org")}
       />
       <LinkSection
         title="Team"
-        links={aggregateMemberLinks(data, "team", "team")}
+        links={aggregateMemberLinks(data, "teams", "team")}
       />
     </SidebarContainer>
   );

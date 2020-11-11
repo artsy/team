@@ -43,17 +43,21 @@ export const getMembers = memoize(async () => {
     .then((res) => res.text())
     .then((csvContent) => csv().fromString(csvContent));
 
-  const seen = new Set();
   const promisedMembers = parsed
-    .filter((member) => {
-      if (member.name && !seen.has(member.name)) {
-        seen.add(member.name);
-        return true;
-      }
-      return false;
-    })
     .sort((a, b) => (a.name > b.name ? 1 : a.name < b.name ? -1 : 0)) // sort alphabetically
     .map(async (member) => {
+      member.orgs ??= member.org?.split(";") ?? [];
+      member.orgs = member.orgs
+        .map((org) => org.trim())
+        .filter((org) => org.length > 0);
+      member.teams ??= member.team?.split(";") ?? [];
+      member.teams = member.teams
+        .map((team) => team.trim())
+        .filter((team) => team.length > 0);
+      member.subteams ??= member.subteam?.split(";") ?? [];
+      member.subteams = member.subteams
+        .map((subteam) => subteam.trim())
+        .filter((subteam) => subteam.length > 0);
       if (member.preferred_pronouns) {
         member.preferred_pronouns = member.preferred_pronouns
           .split("/")
