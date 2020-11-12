@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:team.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Member {
+  id                Int      @id @default(autoincrement())
+  name              String   @unique
+  title             String
+  email             String   @unique
+  city              String?
+  country           String?
+  floor             String?
+  startDate         DateTime
+  headshot          String?
+  preferredPronouns String?
+
+  orgs     Organization[]
+  teams    Team[]
+  subteams Subteam[]
+
+  manager   Member?  @relation("MemberToMember", fields: [managerId], references: [id])
+  managerId Int?
+  reports   Member[] @relation("MemberToMember")
+
+}
+
+model Organization {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  members Member[]
+}
+
+model Team {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  members Member[]
+}
+
+model Subteam {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  members Member[]
+}
