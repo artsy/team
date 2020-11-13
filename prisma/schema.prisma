@@ -11,41 +11,52 @@ generator client {
 }
 
 model Member {
-  id                Int      @id @default(autoincrement())
+  slug              String   @id
   name              String   @unique
-  title             String
   email             String   @unique
-  city              String?
-  country           String?
-  floor             String?
+  title             String
+  slack             String?
+  github            String?
   startDate         DateTime
   headshot          String?
   preferredPronouns String?
+  introEmail        String?
+  roleText          String?
 
   orgs     Organization[]
   teams    Team[]
   subteams Subteam[]
 
-  manager   Member?  @relation("MemberToMember", fields: [managerId], references: [id])
-  managerId Int?
-  reports   Member[] @relation("MemberToMember")
+  location     Location? @relation(fields: [locationSlug], references: [slug])
+  locationSlug String?
 
+  manager     Member?  @relation("MemberToMember", fields: [managerSlug], references: [slug])
+  reports     Member[] @relation("MemberToMember")
+  managerSlug String?
 }
 
 model Organization {
-  id      Int      @id @default(autoincrement())
+  slug    String   @id
   name    String   @unique
   members Member[]
 }
 
 model Team {
-  id      Int      @id @default(autoincrement())
+  slug    String   @id
   name    String   @unique
   members Member[]
 }
 
 model Subteam {
-  id      Int      @id @default(autoincrement())
+  slug    String   @id
   name    String   @unique
+  members Member[]
+}
+
+model Location {
+  slug    String   @id
+  city    String
+  country String
+  floor   String?
   members Member[]
 }

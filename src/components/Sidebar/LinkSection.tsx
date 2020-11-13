@@ -8,7 +8,6 @@ export interface LinkConfig {
   external?: boolean;
   count?: number;
   href: string;
-  as?: string;
 }
 
 interface LinkSectionProps {
@@ -24,7 +23,7 @@ export const LinkSection = ({ title, links }: LinkSectionProps) => {
       </Sans>
       {links.map((link) => {
         return (
-          <Flex key={link.as ?? link.href} alignItems="center">
+          <Flex key={link.href} alignItems="center">
             {link.external ? (
               <>
                 <Link underlineBehavior="hover" mr={0.5} href={link.href}>
@@ -33,7 +32,7 @@ export const LinkSection = ({ title, links }: LinkSectionProps) => {
                 <External width={10} height={10} color={color("black60")} />
               </>
             ) : (
-              <RouteLink href={link.href} as={link.as} passHref>
+              <RouteLink href={link.href} passHref>
                 <Link
                   color={
                     router.asPath.split("?")[0] === encodeURI(link.href)

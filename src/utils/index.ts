@@ -14,7 +14,10 @@ export const firstIfMany = <T>(arg: T | T[]): T => {
 };
 
 export const normalizeParam = (param: string) =>
-  param.replace(/[\W_]+/g, "_").toLowerCase();
+  param
+    .trim()
+    .replace(/[\W_]+/g, "_")
+    .toLowerCase();
 
 export const urlFromReq = (req: IncomingMessage) => {
   const host = req.headers.host ?? "localhost:3000";

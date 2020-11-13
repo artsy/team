@@ -44,7 +44,7 @@ export const TeamMember: FC<TeamMemberProps> = (props) => {
           {showAvatar && (
             <AvatarContainer mr={1}>
               <>
-                {member.start_date && isWeekOf(new Date(member.start_date)) && (
+                {member.startDate && isWeekOf(new Date(member.startDate)) && (
                   <AwardIcon
                     color="#6E1FFF"
                     bottom="0px"
@@ -53,10 +53,10 @@ export const TeamMember: FC<TeamMemberProps> = (props) => {
                     zIndex="10"
                   />
                 )}
-                {member.avatar ? (
+                {member.headshot ? (
                   <Avatar
                     size="md"
-                    src={member.avatar}
+                    src={member.headshot}
                     lazyLoad={true}
                     renderFallback={({ diameter }) => (
                       <AvatarFallback diameter={diameter} />
@@ -74,9 +74,9 @@ export const TeamMember: FC<TeamMemberProps> = (props) => {
               <Serif size="4" weight="semibold">
                 {member.name}
               </Serif>
-              {member.preferred_pronouns && (
+              {member.preferredPronouns && (
                 <Serif size="4" color="black60" ml={1}>
-                  {member.preferred_pronouns}
+                  {member.preferredPronouns}
                 </Serif>
               )}
             </Flex>

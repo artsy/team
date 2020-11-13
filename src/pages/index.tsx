@@ -5,53 +5,21 @@ import { NoResults as DefaultNoResults } from "components/NoResults";
 import { FC } from "react";
 import Error from "next/error";
 import { useSearchParam } from "utils";
-import { getMembers } from "../data/team";
 import { TeamMember } from "../components/TeamMember";
-
-export interface Member {
-  name: string;
-  title?: string;
-  /** @deprecated prefer `orgs` */
-  org?: string;
-  orgs: string[];
-  /** @deprecated prefer `teams` */
-  team?: string;
-  teams: string[];
-  /** @deprecated prefer `subteams` */
-  subteam?: string;
-  subteams: string[];
-  reports_to?: string;
-  team_rank?: number;
-  email?: string;
-  city?: string;
-  country?: string;
-  floor?: string;
-  phone?: string;
-  start_date?: string;
-  headshot?: string;
-  avatar?: string;
-  role_text?: string;
-  intro_email?: string;
-  slack_handle?: string;
-  github_handle?: string;
-  seat?: string;
-  preferred_pronouns?: string;
-  profileImage?: string;
-  manager?: Member;
-  reports?: Member[];
-}
+import { getMembersIndex, MemberIndexListing } from "data/teamMember";
+import { getSidebarData } from "data/sidebar";
 
 export interface ServerProps {
-  data?: Member[];
+  data?: MemberIndexListing;
   title?: string;
   NoResults?: typeof DefaultNoResults;
 }
 
-export const getStaticProps: GetStaticProps = async () => {
-  const members = await getMembers();
+export const getStaticProps: GetStaticProps<ServerProps> = async () => {
   return {
     props: {
-      data: members,
+      data: await getMembersIndex(),
+      sidebarData: await getSidebarData(),
     },
   };
 };
@@ -68,7 +36,7 @@ const TeamNav: FC<ServerProps> = (props) => {
     return <Error statusCode={500} />;
   }
 
-  const group: { [groupLetter: string]: Member[] } = {};
+  const group: { [groupLetter: string]: MemberIndexListing } = {};
   data
     .filter((member) =>
       normalizeSearchTerm(member.name).includes(

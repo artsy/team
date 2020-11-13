@@ -3,37 +3,69 @@ import Error from "next/error";
 import { normalizeParam, useDelay } from "utils";
 import { FC, useEffect, useState } from "react";
 import { H1 } from "components/Typography";
-import { Member as MemberType } from "../index";
 import { GetStaticProps, GetStaticPaths } from "next";
-import { getMembers, getMemberProperty } from "../../data/team";
-import { MemberDetails } from "components/MemberDetails";
 import { useAreaGrid } from "components/Grid";
 import { isWeekOf, relativeDaysTillAnniversary, isDayOf } from "utils/date";
 import { AwardIcon } from "components/AwardIcon";
+import { MemberDetails } from "components/MemberDetails";
 import { useWindowSize } from "@react-hook/window-size";
 import Confetti from "react-confetti";
+import { PrismaClient } from "@prisma/client";
+import { getSidebarData } from "data/sidebar";
+import { UnWrapPromise } from "utils/type-helpers";
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const members = await getMembers();
-  return {
-    props: {
-      data: members,
-      member: members.find(
-        (member) => normalizeParam(member.name) === params?.member
-      ),
+export const getStaticPaths: GetStaticPaths<{ member: string }> = async () => {
+  const prisma = new PrismaClient();
+  const members = await prisma.member.findMany({
+    select: {
+      slug: true,
     },
-  };
-};
-
-export const getStaticPaths: GetStaticPaths = async () => {
-  const names = await getMemberProperty("name");
+  });
   return {
-    paths: names.map((name) => ({
+    paths: members.map(({ slug }) => ({
       params: {
-        member: normalizeParam(name),
+        member: slug,
       },
     })),
     fallback: false,
+  };
+};
+
+export const getStaticProps = async ({
+  params,
+}: {
+  params: { member: string };
+}) => {
+  const prisma = new PrismaClient();
+  const memberSlug = params.member as string;
+  const member = await prisma.member.findFirst({
+    include: {
+      location: true,
+      orgs: true,
+      teams: true,
+      subteams: true,
+      manager: {
+        select: {
+          slug: true,
+          name: true,
+        },
+      },
+      reports: {
+        select: {
+          slug: true,
+          name: true,
+        },
+      },
+    },
+    where: {
+      slug: memberSlug,
+    },
+  });
+  return {
+    props: {
+      sidebarData: await getSidebarData(),
+      member: JSON.parse(JSON.stringify(member)),
+    },
   };
 };
 
@@ -53,8 +85,8 @@ const largeLayout: AreaType[][] = [
   ["Summary", "Details"],
 ];
 
-interface MemberProps {
-  member: MemberType;
+export interface MemberProps {
+  member: UnWrapPromise<ReturnType<typeof getStaticProps>>["props"]["member"];
 }
 
 const Member: FC<MemberProps> = ({ member }) => {
@@ -70,14 +102,14 @@ const Member: FC<MemberProps> = ({ member }) => {
   }
 
   useEffect(() => {
-    if (member.start_date && !finished) {
+    if (member.startDate && !finished) {
       setShowConfetti(true);
     }
-  }, [setShowConfetti, member.start_date, finished]);
+  }, [setShowConfetti, member.startDate, finished]);
 
   return (
     <>
-      {showConfetti && isDayOf(new Date(member.start_date!)) && (
+      {showConfetti && isDayOf(new Date(member.startDate!)) && (
         <Confetti
           width={width}
           height={height}
@@ -93,13 +125,13 @@ const Member: FC<MemberProps> = ({ member }) => {
         <Area.Heading>
           <Flex alignItems="center" justifyContent="space-between">
             <H1>{member.name}</H1>
-            {member.start_date && isWeekOf(new Date(member.start_date)) && (
+            {member.startDate && isWeekOf(new Date(member.startDate)) && (
               <>
                 <Flex ml={4}>
                   <AwardIcon />
                   <Serif size="4">
                     Artsyversary{" "}
-                    {relativeDaysTillAnniversary(new Date(member.start_date))}
+                    {relativeDaysTillAnniversary(new Date(member.startDate))}
                   </Serif>
                 </Flex>
               </>
@@ -110,9 +142,7 @@ const Member: FC<MemberProps> = ({ member }) => {
         </Area.Heading>
         <Area.Image>
           <Box minWidth="300px" width="300px">
-            {member.profileImage && (
-              <ResponsiveImage src={member.profileImage} />
-            )}
+            {member.headshot && <ResponsiveImage src={member.headshot} />}
           </Box>
         </Area.Image>
         <Area.Summary width="300px">
@@ -121,14 +151,14 @@ const Member: FC<MemberProps> = ({ member }) => {
               {member.title}
             </Serif>
           )}
-          {member.city && (
+          {member.location?.city && (
             <Serif size="6" color="black60">
-              {member.city}
+              {member.location.city}
             </Serif>
           )}
-          {member.role_text && (
+          {member.roleText && (
             <Serif size="4" mt={1}>
-              {member.role_text}
+              {member.roleText}
             </Serif>
           )}
         </Area.Summary>
