@@ -1,7 +1,7 @@
 import { NowRequest, NowResponse } from "@now/node";
 import { google } from "googleapis";
 import { MemberUpsertArgs, PrismaClient } from "@prisma/client";
-import { range, zipObject } from "lodash-es";
+import { range, zipObject, difference } from "lodash-es";
 import to from "await-to-js";
 import { normalizeParam } from "utils";
 
@@ -100,6 +100,27 @@ export default async function sync(req: NowRequest, res: NowResponse) {
     await prisma.subteam.upsert(body(slug, subteam));
   }
 
+  // 3. Delete any orphaned members
+  const memberSlugsFromSheets = memberRows.map((row) =>
+    normalizeParam(row[column.name])
+  );
+  const memberSlugsFromTable = await prisma.member
+    .findMany({
+      select: {
+        slug: true,
+      },
+    })
+    .then((slugs) => slugs.map(({ slug }) => slug));
+  const orphanedMembers = difference(
+    memberSlugsFromTable,
+    memberSlugsFromSheets
+  );
+  if (orphanedMembers.length > 0) {
+    await prisma.member.deleteMany({
+      where: { OR: orphanedMembers },
+    });
+  }
+
   /**
    * An array of cells from one row of the gsheet. To access the data use
    * the following pattern:
@@ -112,7 +133,7 @@ export default async function sync(req: NowRequest, res: NowResponse) {
    * */
   let row;
 
-  // 3. Create or update team members
+  // 4. Create or update team members
   for (row of memberRows) {
     row = row.map((r) => r.trim());
     const orgs = splitMultiValueCell(row[column.org]);
@@ -226,7 +247,7 @@ export default async function sync(req: NowRequest, res: NowResponse) {
     }
   }
 
-  // 4. Associate reports relationship
+  // 5. Associate reports relationship
   for (let row of memberRows) {
     if (row[column.reports_to] === "") continue;
     const [err] = await to(
@@ -247,7 +268,7 @@ export default async function sync(req: NowRequest, res: NowResponse) {
     }
   }
 
-  // 5. Delete any unused entities
+  // 6. Delete any unused entities
   const slug = {
     slug: true,
     members: {
