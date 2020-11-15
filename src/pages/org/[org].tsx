@@ -1,70 +1,68 @@
-import { useRouter } from "next/router";
-import TeamNav, { ServerProps } from "../index";
-import { Spinner } from "@artsy/palette";
-import { normalizeParam } from "utils";
+import TeamNav from "../index";
 import { NoResults } from "components/NoResults";
 import { FC } from "react";
-import Error from "next/error";
-import { getMembers, getMemberProperty } from "../../data/team";
 import { GetStaticProps, GetStaticPaths } from "next";
+import { getMembersIndex, MemberIndexListing } from "data/teamMember";
+import { getSidebarData } from "data/sidebar";
+import { prisma } from "data/prisma";
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  const orgs = await getMemberProperty("orgs");
+export const getStaticPaths: GetStaticPaths<{ org: string }> = async () => {
+  const orgs = await prisma.organization.findMany({
+    select: {
+      slug: true,
+    },
+  });
   return {
-    paths: orgs.flat().map((org) => ({
+    paths: orgs.map(({ slug }) => ({
       params: {
-        org: normalizeParam(org),
+        org: slug,
       },
     })),
-    fallback: false,
+    fallback: "blocking",
   };
 };
 
-export const getStaticProps: GetStaticProps = async () => {
-  const members = await getMembers();
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const orgSlug = params?.org as string;
+  const members = await getMembersIndex({
+    orgs: {
+      some: {
+        slug: orgSlug,
+      },
+    },
+  });
+  const org = await prisma.organization.findFirst({
+    select: { name: true },
+    where: { slug: orgSlug },
+  });
   return {
+    notFound: !org,
     props: {
       data: members,
+      sidebarData: await getSidebarData(),
+      org: org?.name,
     },
+    // page revalidates at most every 5 minutes
+    revalidate: 1 * 60 * 5,
   };
 };
-const Organization: FC<ServerProps> = (props) => {
-  const router = useRouter();
 
-  if (router.isFallback) {
-    return <Spinner />;
-  }
+interface OrgPageProps {
+  data: MemberIndexListing;
+  org?: string;
+}
 
-  if (!props.data) {
-    return <Error statusCode={500} />;
-  }
-
-  const org = Array.isArray(router.query.org)
-    ? router.query.org[0]
-    : router.query.org;
-  let formattedOrg = "";
-
-  if (!org) {
-    return <Error statusCode={404} />;
-  }
-
-  const data = props.data.filter((member) => {
-    const possibleOrg = member.orgs.find((t) => normalizeParam(t) === org);
-    if (!possibleOrg) return false;
-    formattedOrg = possibleOrg;
-    return true;
-  });
+const Org: FC<OrgPageProps> = (props) => {
+  const { data, org } = props;
 
   return (
-    <>
-      <TeamNav
-        {...props}
-        data={data}
-        title={formattedOrg}
-        NoResults={() => <NoResults page={formattedOrg} />}
-      />
-    </>
+    <TeamNav
+      {...props}
+      title={org}
+      data={data}
+      NoResults={() => <NoResults page={org} />}
+    />
   );
 };
 
-export default Organization;
+export default Org;

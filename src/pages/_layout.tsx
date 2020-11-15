@@ -12,6 +12,7 @@ const PageContainer = styled(Box)`
 interface TeamProps {
   mdx?: boolean;
   data?: any;
+  sidebarData?: any;
   errorCode?: number;
   errorMessage?: string;
 }
@@ -23,7 +24,7 @@ export const Layout: React.FC<TeamProps> = ({ children, ...props }) => {
   }
   return (
     <Flex height="100%">
-      <Sidebar {...props} data={props.data} />
+      <Sidebar {...props} data={props.sidebarData} />
       <PageContainer
         width="100%"
         height="100%"

@@ -1,56 +1,66 @@
-import { useRouter } from "next/router";
-import TeamNav, { ServerProps } from "../index";
-import { normalizeParam } from "utils";
+import TeamNav from "../index";
 import { NoResults } from "components/NoResults";
 import { FC } from "react";
-import Error from "next/error";
 import { GetStaticProps, GetStaticPaths } from "next";
-import { getMembers, getMemberProperty } from "../../data/team";
+import { getMembersIndex, MemberIndexListing } from "data/teamMember";
+import { getSidebarData } from "data/sidebar";
+import { prisma } from "data/prisma";
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  const teams = await getMemberProperty("team");
+export const getStaticPaths: GetStaticPaths<{ team: string }> = async () => {
+  const teams = await prisma.team.findMany({
+    select: {
+      slug: true,
+    },
+  });
   return {
-    paths: teams.map((team) => ({
+    paths: teams.map(({ slug }) => ({
       params: {
-        team: normalizeParam(team),
+        team: slug,
       },
     })),
-    fallback: false,
+    fallback: "blocking",
   };
 };
 
-export const getStaticProps: GetStaticProps = async () => {
-  const members = await getMembers();
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const teamSlug = params?.team as string;
+  const members = await getMembersIndex({
+    teams: {
+      some: {
+        slug: teamSlug,
+      },
+    },
+  });
+  const team = await prisma.team.findFirst({
+    select: { name: true },
+    where: { slug: teamSlug },
+  });
   return {
+    notFound: !team,
     props: {
       data: members,
+      sidebarData: await getSidebarData(),
+      team: team?.name,
     },
+    // page revalidates at most every 5 minutes
+    revalidate: 1 * 60 * 5,
   };
 };
 
-const Team: FC<ServerProps> = (props) => {
-  const router = useRouter();
+interface TeamPageProps {
+  data: MemberIndexListing;
+  team?: string;
+}
 
-  if (!props.data) {
-    return <Error statusCode={500} />;
-  }
-
-  const team = router.query.team;
-  let formattedTeam = "";
-
-  const data = props.data.filter((member) => {
-    const possibleTeam = member.teams.find((t) => normalizeParam(t) === team);
-    if (!possibleTeam) return false;
-    formattedTeam = possibleTeam;
-    return true;
-  });
+const Team: FC<TeamPageProps> = (props) => {
+  const { data, team } = props;
 
   return (
     <TeamNav
       {...props}
-      title={formattedTeam}
+      title={team}
       data={data}
-      NoResults={() => <NoResults page={formattedTeam} />}
+      NoResults={() => <NoResults page={team} />}
     />
   );
 };

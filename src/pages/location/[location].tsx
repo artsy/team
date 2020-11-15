@@ -1,63 +1,62 @@
-import { useRouter } from "next/router";
-import TeamNav, { ServerProps, Member } from "../index";
-import { Spinner } from "@artsy/palette";
-import { normalizeParam } from "utils";
+import TeamNav from "../index";
 import { NoResults } from "components/NoResults";
 import { FC } from "react";
-import Error from "next/error";
 import { GetStaticProps, GetStaticPaths } from "next";
-import { getMembers, getMemberProperty } from "../../data/team";
+import { getMembersIndex, MemberIndexListing } from "data/teamMember";
+import { getSidebarData } from "data/sidebar";
+import { prisma } from "data/prisma";
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const locations = await getMemberProperty("city");
+  const locations = await prisma.location.findMany({
+    select: {
+      slug: true,
+    },
+  });
   return {
-    paths: locations.map((location) => ({
+    paths: locations.map(({ slug }) => ({
       params: {
-        location: normalizeParam(location!),
+        location: slug,
       },
     })),
-    fallback: false,
+    fallback: "blocking",
   };
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const members = await getMembers();
+  const locationSlug = params?.location as string;
+  const members = await getMembersIndex({
+    locationSlug,
+  });
+  const location = await prisma.location.findFirst({
+    select: { city: true },
+    where: { slug: locationSlug },
+  });
   return {
+    notFound: !location,
     props: {
       data: members,
-      location: params?.location,
+      sidebarData: await getSidebarData(),
+      location: location?.city,
     },
+    // page revalidates at most every 5 minutes
+    revalidate: 1 * 60 * 5,
   };
 };
 
 interface LocationProps {
-  data: Member[];
+  data: MemberIndexListing;
   location: string;
 }
 
 const Location: FC<LocationProps> = (props) => {
-  const { location } = props;
-
-  if (!props.location) {
-    return <Error statusCode={404} />;
-  }
-
-  let formattedLocation = "";
-
-  const data = props.data.filter((member) => {
-    if (member.city && normalizeParam(member.city) === location) {
-      formattedLocation = member.city;
-      return true;
-    }
-    return false;
-  });
+  const { data, location } = props;
 
   return (
     <TeamNav
       {...props}
       data={data}
-      title={formattedLocation}
-      NoResults={() => <NoResults page={formattedLocation} />}
+      title={location}
+      NoResults={() => <NoResults page={location} />}
     />
   );
 };

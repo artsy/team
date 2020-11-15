@@ -1,17 +1,29 @@
-import { Member } from "pages";
 import { Serif, Link } from "@artsy/palette";
 import { formatDistanceToNow } from "date-fns";
 import { capitalize } from "lodash-es";
 import RouterLink from "next/link";
-import { normalizeParam } from "utils";
 import { Fragment } from "react";
 import { Grid } from "components/Grid";
+import { Location, Member, Organization, Subteam, Team } from "@prisma/client";
 
-interface MemberDetailsProps {
-  member: Member;
+interface MemberDetails {
+  member: Member & {
+    orgs: Organization[];
+    locations: Location[];
+    teams: Team[];
+    subteams: Subteam[];
+    manager: {
+      name: string;
+      slug: string;
+    };
+    reports: {
+      name: string;
+      slug: string;
+    }[];
+  };
 }
 
-export function MemberDetails({ member }: MemberDetailsProps) {
+export function MemberDetails({ member }: MemberDetails) {
   const { manager, reports, orgs, teams, subteams } = member;
   const showOrgs = member.orgs.length > 0;
   const showTeams =
@@ -31,14 +43,14 @@ export function MemberDetails({ member }: MemberDetailsProps) {
     >
       <>
         {/* Joined time with email link */}
-        {member.start_date && (
+        {member.startDate && (
           <>
             <Serif size="4" weight="semibold">
               Joined:
             </Serif>
-            <Link href={member.intro_email} underlineBehavior="hover">
+            <Link href={member.introEmail} underlineBehavior="hover">
               <Serif size="4">
-                {capitalize(formatDistanceToNow(new Date(member.start_date)))}{" "}
+                {capitalize(formatDistanceToNow(new Date(member.startDate)))}{" "}
                 ago
               </Serif>
             </Link>
@@ -46,12 +58,12 @@ export function MemberDetails({ member }: MemberDetailsProps) {
         )}
 
         {/* Preferred pronouns */}
-        {member.preferred_pronouns && (
+        {member.preferredPronouns && (
           <>
             <Serif size="4" weight="semibold">
               Pronouns:
             </Serif>
-            <Serif size="4">{member.preferred_pronouns}</Serif>
+            <Serif size="4">{member.preferredPronouns}</Serif>
           </>
         )}
 
@@ -63,10 +75,10 @@ export function MemberDetails({ member }: MemberDetailsProps) {
             </Serif>
             <span>
               {orgs.map((org) => (
-                <Fragment key={`org-${normalizeParam(org)}`}>
-                  <RouterLink href={`/org/${normalizeParam(org)}`} passHref>
+                <Fragment key={`org-${org.slug}`}>
+                  <RouterLink href={`/org/${org.slug}`} passHref>
                     <Link noUnderline>
-                      <Serif size="4">{org}</Serif>
+                      <Serif size="4">{org.name}</Serif>
                     </Link>
                   </RouterLink>
                 </Fragment>
@@ -84,10 +96,10 @@ export function MemberDetails({ member }: MemberDetailsProps) {
 
             <span>
               {teams.map((team) => (
-                <Fragment key={`team-${normalizeParam(team)}`}>
-                  <RouterLink href={`/team/${normalizeParam(team)}`} passHref>
+                <Fragment key={`team-${team.slug}`}>
+                  <RouterLink href={`/team/${team.slug}`} passHref>
                     <Link noUnderline>
-                      <Serif size="4">{team}</Serif>
+                      <Serif size="4">{team.name}</Serif>
                     </Link>
                   </RouterLink>
                 </Fragment>
@@ -104,13 +116,10 @@ export function MemberDetails({ member }: MemberDetailsProps) {
             </Serif>
             <span>
               {subteams.map((subteam) => (
-                <Fragment key={`subteam-${normalizeParam(subteam)}`}>
-                  <RouterLink
-                    href={`/subteam/${normalizeParam(subteam)}`}
-                    passHref
-                  >
+                <Fragment key={`subteam-${subteam.slug}`}>
+                  <RouterLink href={`/subteam/${subteam.slug}`} passHref>
                     <Link noUnderline>
-                      <Serif size="4">{subteam}</Serif>
+                      <Serif size="4">{subteam.name}</Serif>
                     </Link>
                   </RouterLink>
                 </Fragment>
@@ -125,11 +134,7 @@ export function MemberDetails({ member }: MemberDetailsProps) {
             <Serif size="4" weight="semibold">
               Manager:
             </Serif>
-            <RouterLink
-              href={"/member/[member]"}
-              as={`/member/${normalizeParam(manager.name)}`}
-              passHref
-            >
+            <RouterLink href={`/member/${manager.slug}`} passHref>
               <Link noUnderline>
                 <Serif size="4">{manager.name}</Serif>
               </Link>
@@ -138,19 +143,15 @@ export function MemberDetails({ member }: MemberDetailsProps) {
         )}
 
         {/* Show reports */}
-        {reports && (
+        {reports?.length > 0 && (
           <>
             <Serif size="4" weight="semibold">
               Reports:
             </Serif>
             <span>
               {reports.map((report) => (
-                <Fragment key={`report-${normalizeParam(report.name)}`}>
-                  <RouterLink
-                    href={"/member/[member]"}
-                    as={`/member/${normalizeParam(report.name)}`}
-                    passHref
-                  >
+                <Fragment key={`report-${report.slug}`}>
+                  <RouterLink href={`/member/${report.slug}`} passHref>
                     <Link noUnderline>
                       <Serif size="4">{report.name}</Serif>
                     </Link>

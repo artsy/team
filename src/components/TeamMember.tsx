@@ -1,13 +1,13 @@
-import { Member } from "../pages";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { normalizeParam } from "../utils";
 import { AvatarFallback } from "./AvatarFallback";
 import RouterLink from "next/link";
-import { Avatar, Box, Serif, Flex, Link } from "@artsy/palette";
-import styled from "styled-components";
-import { color } from "styled-system";
+import { Box, Serif, Flex, Link, color } from "@artsy/palette";
+import styled, { keyframes } from "styled-components";
 import { AwardIcon } from "./AwardIcon";
 import { isWeekOf } from "utils/date";
+import Image from "next/image";
+import { Member, Location } from "@prisma/client";
 
 const TeamMemberContainer = styled(Flex)`
   border-radius: 5px;
@@ -18,20 +18,43 @@ const TeamMemberContainer = styled(Flex)`
   }
 `;
 
+const pulse = keyframes`
+  0% { background-color: ${color("black10")}; }
+  50% { background-color: ${color("black5")}; }
+  100% { background-color: ${color("black10")}; }
+`;
+
 const AvatarContainer = styled(Box)`
   flex-shrink: 0;
   position: relative;
+  width: 100px;
+  height: 100px;
+  background-color: ${color("black10")};
+  animation: ${pulse} 2s ease-in-out infinite;
+  border-radius: 50%;
 `;
 
-const location = ({ city, floor }: { city?: string; floor?: string }) =>
-  [city, floor && `Fl. ${floor}`].filter((v) => v).join(", ");
+const Avatar = styled(Image)`
+  border-radius: 50%;
+  opacity: ${(props) => (props as any).opacity};
+  transition: opacity 0.3s;
+`;
+
+const location = (member: TeamMemberProps["member"]) =>
+  [
+    member.location?.city,
+    member.location?.floor && `Fl. ${member.location.floor}`,
+  ]
+    .filter((v) => v)
+    .join(", ");
 
 export interface TeamMemberProps {
-  member: Member;
+  member: Member & { location: Location };
   showAvatar?: boolean;
 }
 export const TeamMember: FC<TeamMemberProps> = (props) => {
   const { member, showAvatar = true } = props;
+  const [opacity, setOpacity] = useState(0);
 
   return (
     <RouterLink
@@ -44,7 +67,7 @@ export const TeamMember: FC<TeamMemberProps> = (props) => {
           {showAvatar && (
             <AvatarContainer mr={1}>
               <>
-                {member.start_date && isWeekOf(new Date(member.start_date)) && (
+                {member.startDate && isWeekOf(new Date(member.startDate)) && (
                   <AwardIcon
                     color="#6E1FFF"
                     bottom="0px"
@@ -53,14 +76,16 @@ export const TeamMember: FC<TeamMemberProps> = (props) => {
                     zIndex="10"
                   />
                 )}
-                {member.avatar ? (
+                {member.headshot ? (
                   <Avatar
-                    size="md"
-                    src={member.avatar}
-                    lazyLoad={true}
-                    renderFallback={({ diameter }) => (
-                      <AvatarFallback diameter={diameter} />
-                    )}
+                    width="100px"
+                    height="100px"
+                    // @ts-ignore Unsure why layout prop types are off
+                    layout="fixed"
+                    src={member.headshot}
+                    sizes="100px"
+                    onLoad={() => setOpacity(1)}
+                    opacity={opacity}
                   />
                 ) : (
                   <AvatarFallback diameter={"100px"} />
@@ -74,9 +99,9 @@ export const TeamMember: FC<TeamMemberProps> = (props) => {
               <Serif size="4" weight="semibold">
                 {member.name}
               </Serif>
-              {member.preferred_pronouns && (
+              {member.preferredPronouns && (
                 <Serif size="4" color="black60" ml={1}>
-                  {member.preferred_pronouns}
+                  {member.preferredPronouns}
                 </Serif>
               )}
             </Flex>
