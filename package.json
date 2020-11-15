@@ -5,6 +5,8 @@
   "scripts": {
     "write-creds": "ts-node --dir ./scripts write-credentials.ts",
     "prime-cache": "ts-node --dir ./scripts prime-cache.ts",
+    "preprime-cache": "yarn create-db",
+    "create-db": "prisma db push --preview-feature",
     "start": "next start",
     "predev": "yarn write-creds",
     "dev": "next dev",
