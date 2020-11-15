@@ -2,8 +2,7 @@ import { Serif, Link } from "@artsy/palette";
 import { formatDistanceToNow } from "date-fns";
 import { capitalize } from "lodash-es";
 import RouterLink from "next/link";
-import { normalizeParam } from "utils";
-import { FC, Fragment } from "react";
+import { Fragment } from "react";
 import { Grid } from "components/Grid";
 import { Location, Member, Organization, Subteam, Team } from "@prisma/client";
 
@@ -144,7 +143,7 @@ export function MemberDetails({ member }: MemberDetails) {
         )}
 
         {/* Show reports */}
-        {reports && (
+        {reports?.length > 0 && (
           <>
             <Serif size="4" weight="semibold">
               Reports:
