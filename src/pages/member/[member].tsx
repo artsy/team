@@ -26,7 +26,7 @@ export const getStaticPaths: GetStaticPaths<{ member: string }> = async () => {
         member: slug,
       },
     })),
-    fallback: false,
+    fallback: "blocking",
   };
 };
 
@@ -60,6 +60,7 @@ export const getStaticProps = async ({
     },
   });
   return {
+    notFound: !member,
     props: {
       sidebarData: await getSidebarData(),
       member: JSON.parse(JSON.stringify(member)),

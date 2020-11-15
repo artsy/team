@@ -18,7 +18,7 @@ interface TeamProps {
 }
 
 export const Layout: React.FC<TeamProps> = ({ children, ...props }) => {
-  const { errorCode, data, sidebarData, errorMessage } = props;
+  const { errorCode, data, errorMessage } = props;
   if (errorCode) {
     return <Error statusCode={errorCode} title={errorMessage}></Error>;
   }

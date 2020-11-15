@@ -3,7 +3,6 @@ import { GetStaticProps } from "next";
 import { H1 } from "components/Typography";
 import { NoResults as DefaultNoResults } from "components/NoResults";
 import { FC } from "react";
-import Error from "next/error";
 import { useSearchParam } from "utils";
 import { TeamMember } from "../components/TeamMember";
 import { getMembersIndex, MemberIndexListing } from "data/teamMember";
@@ -34,13 +33,9 @@ const TeamNav: FC<ServerProps> = (props) => {
   const { title, data, NoResults = DefaultNoResults } = props;
   const searchParam = useSearchParam();
 
-  if (!data) {
-    return <Error statusCode={500} />;
-  }
-
   const group: { [groupLetter: string]: MemberIndexListing } = {};
   data
-    .filter((member) =>
+    ?.filter((member) =>
       normalizeSearchTerm(member.name).includes(
         normalizeSearchTerm(searchParam)
       )

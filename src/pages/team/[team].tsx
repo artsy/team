@@ -18,7 +18,7 @@ export const getStaticPaths: GetStaticPaths<{ team: string }> = async () => {
         team: slug,
       },
     })),
-    fallback: false,
+    fallback: "blocking",
   };
 };
 
@@ -36,6 +36,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     where: { slug: teamSlug },
   });
   return {
+    notFound: !team,
     props: {
       data: members,
       sidebarData: await getSidebarData(),

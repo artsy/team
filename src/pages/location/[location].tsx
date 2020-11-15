@@ -18,7 +18,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
         location: slug,
       },
     })),
-    fallback: false,
+    fallback: "blocking",
   };
 };
 
@@ -32,6 +32,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     where: { slug: locationSlug },
   });
   return {
+    notFound: !location,
     props: {
       data: members,
       sidebarData: await getSidebarData(),

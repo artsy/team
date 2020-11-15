@@ -18,7 +18,7 @@ export const getStaticPaths: GetStaticPaths<{ org: string }> = async () => {
         org: slug,
       },
     })),
-    fallback: false,
+    fallback: "blocking",
   };
 };
 
@@ -36,6 +36,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     where: { slug: orgSlug },
   });
   return {
+    notFound: !org,
     props: {
       data: members,
       sidebarData: await getSidebarData(),

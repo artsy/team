@@ -131,7 +131,7 @@ export const Sidebar = ({ data }: SidebarProps) => {
       {/* This spacer should have an mb of the height above + 30px */}
       <Spacer mb="140px" />
       <LinkSection title="Links" links={helpfulLinks} />
-      {data.map(([title, prefix, entries]) => {
+      {data?.map(([title, prefix, entries]) => {
         return (
           <LinkSection
             key={`${prefix}-links`}
