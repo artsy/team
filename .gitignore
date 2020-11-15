@@ -6,3 +6,4 @@ vars.yml
 .hokusai-tmp
 .google-api-creds.json
 prisma/*.db
+yarn-error.log
