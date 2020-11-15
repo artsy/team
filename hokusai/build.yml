@@ -5,7 +5,7 @@ services:
     build:
       context: ../
       args:
-        SHEETS_URL: "{{ SHEETS_URL }}"
+        SHEET_ID: "{{ SHEET_ID }}"
         G_CREDS: "{{ G_CREDS }}"
         ACCESS_KEY_ID: "{{ ACCESS_KEY_ID }}"
         SECRET_ACCESS_KEY: "{{ SECRET_ACCESS_KEY }}"

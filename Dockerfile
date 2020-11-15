@@ -1,7 +1,7 @@
 FROM node:12.14-alpine
 
 # Build environment variables
-ARG SHEETS_URL
+ARG SHEET_ID
 ARG G_CREDS
 ARG ACCESS_KEY_ID
 ARG SECRET_ACCESS_KEY
@@ -24,6 +24,7 @@ USER deploy
 
 # Copy files required for installation of application dependencies
 COPY --chown=deploy:deploy package.json yarn.lock ./
+COPY --chown=deploy:deploy prisma/schema.prisma prisma/schema.prisma
 
 # Install application dependencies
 RUN yarn install --frozen-lockfile --quiet && \

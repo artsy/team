@@ -9,7 +9,6 @@
     "predev": "yarn write-creds",
     "dev": "next dev",
     "prebuild": "yarn write-creds && yarn prime-cache",
-    "postinstall": "prisma generate",
     "build": "next build",
     "type-check": "tsc",
     "logs:staging": "hokusai staging logs | grep '^{' | npx miami-vice",
