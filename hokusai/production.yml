@@ -133,3 +133,34 @@ spec:
             backend:
               serviceName: team-web-internal
               servicePort: 3000
+---
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: team-data-sync-cron
+spec:
+  schedule: "0 0 8-19 ? * MON,TUE,WED,THU,FRI *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: team-data-sync-cron
+              image: 585031190124.dkr.ecr.us-east-1.amazonaws.com/team:production
+              args: ["yarn", "prime-cache"]
+              imagePullPolicy: Always
+              envFrom:
+                - configMapRef:
+                    name: team-environment
+          restartPolicy: Never
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 1
+                  preference:
+                    matchExpressions:
+                      - key: tier
+                        operator: In
+                        values:
+                          - background
