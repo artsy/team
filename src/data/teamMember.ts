@@ -12,6 +12,12 @@ export async function getMembersIndex(where: MemberWhereInput = {}) {
       startDate: true,
       title: true,
       headshot: true,
+      location: {
+        select: {
+          city: true,
+          floor: true,
+        },
+      },
       orgs: {
         select: {
           name: true,

@@ -1,11 +1,12 @@
 import { NowRequest, NowResponse } from "@now/node";
 import { google } from "googleapis";
-import { MemberUpsertArgs, PrismaClient } from "@prisma/client";
+import { MemberUpsertArgs } from "@prisma/client";
 import { range, zipObject, difference } from "lodash-es";
 import to from "await-to-js";
 import { normalizeParam } from "utils";
-
-const prisma = new PrismaClient();
+import { uploadUserImage } from "data/image";
+import { log } from "utils/logger";
+import { prisma } from "data/prisma";
 
 const sheets = google.sheets({
   version: "v4",
@@ -29,7 +30,7 @@ const splitMultiValueCell = (cellValue: string): string[] | undefined => {
   return values.length > 0 ? values : undefined;
 };
 
-export default async function sync(req: NowRequest, res: NowResponse) {
+export async function sync() {
   // 1. grab sheet
   const { data } = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SHEET_ID as string,
@@ -37,8 +38,7 @@ export default async function sync(req: NowRequest, res: NowResponse) {
   });
 
   if (!data.values) {
-    res.status(500).send("Sheet values empty").end();
-    return;
+    throw new Error("Sheet values empty");
   }
 
   const [keys, ...memberRowsWithWhitespace] = data.values;
@@ -139,15 +139,30 @@ export default async function sync(req: NowRequest, res: NowResponse) {
     const orgs = splitMultiValueCell(row[column.org]);
     const teams = splitMultiValueCell(row[column.team]);
     const subteams = splitMultiValueCell(row[column.subteam]);
+    const memberSlug = normalizeParam(row[column.name]);
+    let headshot = row[column.headshot];
+    if (headshot) {
+      const [imageUploadError, headshotURL] = await to(
+        uploadUserImage(memberSlug, new URL(headshot))
+      );
+      if (imageUploadError || !headshotURL) {
+        log.error(`Failed to upload image for ${memberSlug}`, {
+          imageUploadError,
+        });
+        headshot = "";
+      } else {
+        headshot = headshotURL;
+      }
+    }
 
     const [err] = await to(
       prisma.member.upsert<MemberUpsertArgs>({
         create: {
           name: row[column.name],
-          slug: normalizeParam(row[column.name]),
+          slug: memberSlug,
           title: row[column.title],
           email: row[column.email],
-          headshot: row[column.headshot],
+          headshot,
           preferredPronouns: row[column.preferred_pronouns],
           introEmail: row[column.intro_email],
           roleText: row[column.role_text],
@@ -189,10 +204,9 @@ export default async function sync(req: NowRequest, res: NowResponse) {
         },
         update: {
           name: row[column.name],
-          slug: normalizeParam(row[column.name]),
           title: row[column.title],
           email: row[column.email],
-          headshot: row[column.headshot],
+          headshot,
           preferredPronouns: row[column.preferred_pronouns],
           introEmail: row[column.intro_email],
           roleText: row[column.role_text],
@@ -291,7 +305,7 @@ export default async function sync(req: NowRequest, res: NowResponse) {
     const deletedLocations = await prisma.location.deleteMany({
       where: { OR: unusedLocations },
     });
-    console.log("locations deleted:", deletedLocations);
+    log.info("locations deleted", { deletedLocations });
   }
 
   const unusedOrgs = unused(
@@ -301,7 +315,7 @@ export default async function sync(req: NowRequest, res: NowResponse) {
     const deletedOrgs = await prisma.organization.deleteMany({
       where: { OR: unusedOrgs },
     });
-    console.log("orgs deleted:", deletedOrgs);
+    log.info("orgs deleted", { deletedOrgs });
   }
 
   const unusedTeams = unused(await prisma.team.findMany({ select: slug }));
@@ -309,7 +323,7 @@ export default async function sync(req: NowRequest, res: NowResponse) {
     const deletedTeams = await prisma.team.deleteMany({
       where: { OR: unusedTeams },
     });
-    console.log("teams deleted:", deletedTeams);
+    log.info("teams deleted", { deletedTeams });
   }
 
   const unusedSubteams = unused(
@@ -319,8 +333,14 @@ export default async function sync(req: NowRequest, res: NowResponse) {
     const deletedSubteams = await prisma.subteam.deleteMany({
       where: { OR: unusedSubteams },
     });
-    console.log("subteams deleted:", deletedSubteams);
+    log.info("subteams deleted", { deletedSubteams });
   }
 
-  res.status(200).end();
+  return "successful";
+}
+
+export default async function (req: NowRequest, res: NowResponse) {
+  const [err, result] = await to(sync());
+  err ? res.status(500).send(err) : res.status(200).send(result);
+  res.end();
 }

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "commonjs",
+    "baseUrl": "../src",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "strict": false,
+    "paths": {
+      "../src/*": ["*"],
+      "lodash-es": ["lodash"]
+    },
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+  },
+  "include": ["./*.ts", "../src/**/*.ts", "../src/**/*.tsx"],
+  "exclude": ["../node_modules"],
+}
