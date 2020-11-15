@@ -1,4 +1,11 @@
-import { Flex, Box, Serif, ResponsiveImage, Separator } from "@artsy/palette";
+import {
+  Flex,
+  Box,
+  Serif,
+  Separator,
+  UserSingleIcon,
+  color,
+} from "@artsy/palette";
 import Error from "next/error";
 import { useDelay } from "utils";
 import { FC, useEffect, useState } from "react";
@@ -13,6 +20,7 @@ import Confetti from "react-confetti";
 import { prisma } from "data/prisma";
 import { getSidebarData } from "data/sidebar";
 import { UnWrapPromise } from "utils/type-helpers";
+import { Image } from "components/Image";
 
 export const getStaticPaths: GetStaticPaths<{ member: string }> = async () => {
   const members = await prisma.member.findMany({
@@ -142,9 +150,19 @@ const Member: FC<MemberProps> = ({ member }) => {
           <Separator mb={2} />
         </Area.Heading>
         <Area.Image>
-          <Box minWidth="300px" width="300px">
-            {member.headshot && <ResponsiveImage src={member.headshot} />}
-          </Box>
+          {member.headshot ? (
+            <Image
+              src={member.headshot}
+              priority={true}
+              width="300px"
+              height="300px"
+              layout="fixed"
+            />
+          ) : (
+            <Box background={color("black10")}>
+              <UserSingleIcon fill="black30" height="300px" width="300px" />
+            </Box>
+          )}
         </Area.Image>
         <Area.Summary width="300px">
           {member.title && (
