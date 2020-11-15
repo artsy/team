@@ -4,10 +4,9 @@ import { FC } from "react";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { getMembersIndex, MemberIndexListing } from "data/teamMember";
 import { getSidebarData } from "data/sidebar";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "data/prisma";
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const prisma = new PrismaClient();
   const locations = await prisma.location.findMany({
     select: {
       slug: true,
@@ -25,7 +24,6 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const locationSlug = params?.location as string;
-  const prisma = new PrismaClient();
   const members = await getMembersIndex({
     locationSlug,
   });

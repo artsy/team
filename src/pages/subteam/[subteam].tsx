@@ -2,12 +2,11 @@ import TeamNav from "../index";
 import { NoResults } from "components/NoResults";
 import { FC } from "react";
 import { GetStaticProps, GetStaticPaths } from "next";
-import { PrismaClient } from "@prisma/client";
 import { getMembersIndex, MemberIndexListing } from "data/teamMember";
 import { getSidebarData } from "data/sidebar";
+import { prisma } from "data/prisma";
 
 export const getStaticPaths: GetStaticPaths<{ subteam: string }> = async () => {
-  const prisma = new PrismaClient();
   const subteams = await prisma.subteam.findMany({
     select: {
       slug: true,
@@ -25,7 +24,6 @@ export const getStaticPaths: GetStaticPaths<{ subteam: string }> = async () => {
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const subteamSlug = params?.subteam as string;
-  const prisma = new PrismaClient();
   const members = await getMembersIndex({
     subteams: {
       some: {

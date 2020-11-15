@@ -1,21 +1,20 @@
 import { Flex, Box, Serif, ResponsiveImage, Separator } from "@artsy/palette";
 import Error from "next/error";
-import { normalizeParam, useDelay } from "utils";
+import { useDelay } from "utils";
 import { FC, useEffect, useState } from "react";
 import { H1 } from "components/Typography";
-import { GetStaticProps, GetStaticPaths } from "next";
+import { GetStaticPaths } from "next";
 import { useAreaGrid } from "components/Grid";
 import { isWeekOf, relativeDaysTillAnniversary, isDayOf } from "utils/date";
 import { AwardIcon } from "components/AwardIcon";
 import { MemberDetails } from "components/MemberDetails";
 import { useWindowSize } from "@react-hook/window-size";
 import Confetti from "react-confetti";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "data/prisma";
 import { getSidebarData } from "data/sidebar";
 import { UnWrapPromise } from "utils/type-helpers";
 
 export const getStaticPaths: GetStaticPaths<{ member: string }> = async () => {
-  const prisma = new PrismaClient();
   const members = await prisma.member.findMany({
     select: {
       slug: true,
@@ -36,7 +35,6 @@ export const getStaticProps = async ({
 }: {
   params: { member: string };
 }) => {
-  const prisma = new PrismaClient();
   const memberSlug = params.member as string;
   const member = await prisma.member.findFirst({
     include: {

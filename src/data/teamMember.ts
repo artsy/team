@@ -1,17 +1,11 @@
-import {
-  MemberCreateInput,
-  MemberGetPayload,
-  MemberSelect,
-  MemberWhereInput,
-  PrismaClient,
-} from "@prisma/client";
+import { MemberSelect, MemberWhereInput } from "@prisma/client";
 import { UnWrapPromise } from "utils/type-helpers";
+import { prisma } from "data/prisma";
 
 export type MemberIndexListing = UnWrapPromise<
   ReturnType<typeof getMembersIndex>
 >;
 export async function getMembersIndex(where: MemberWhereInput = {}) {
-  const prisma = new PrismaClient();
   const data = await prisma.member.findMany({
     select: {
       name: true,
@@ -42,7 +36,6 @@ export async function getMembersIndex(where: MemberWhereInput = {}) {
 export async function getMemberField<R>(
   field: keyof MemberSelect
 ): Promise<R[]> {
-  const prisma = new PrismaClient();
   const data = (
     await prisma.member.findMany({
       select: {

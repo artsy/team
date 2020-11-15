@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "data/prisma";
 
-export async function getLocationAggregate() {
-  const prisma = new PrismaClient();
+async function getLocationLinksData() {
   const results = await prisma.location.findMany({
     include: {
       members: true,
@@ -14,8 +13,7 @@ export async function getLocationAggregate() {
   }));
 }
 
-export async function getOrgAggregate() {
-  const prisma = new PrismaClient();
+async function getOrgLinksData() {
   const results = await prisma.organization.findMany({
     include: {
       members: true,
@@ -29,8 +27,7 @@ export async function getOrgAggregate() {
   }));
 }
 
-export async function getTeamAggregate() {
-  const prisma = new PrismaClient();
+async function getTeamLinksData() {
   const results = await prisma.team.findMany({
     include: {
       members: true,
@@ -52,8 +49,8 @@ export type SidebarData = [
 
 export const getSidebarData = async (): Promise<SidebarData> => {
   return [
-    ["Locations", "location", await getLocationAggregate()],
-    ["Organizations", "org", await getOrgAggregate()],
-    ["Teams", "team", await getTeamAggregate()],
+    ["Locations", "location", await getLocationLinksData()],
+    ["Organizations", "org", await getOrgLinksData()],
+    ["Teams", "team", await getTeamLinksData()],
   ];
 };
