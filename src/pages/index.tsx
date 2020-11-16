@@ -20,8 +20,8 @@ export const getStaticProps: GetStaticProps<ServerProps> = async () => {
       data: await getMembersIndex(),
       sidebarData: await getSidebarData(),
     },
-    // page revalidates at most every 5 minutes
-    revalidate: 1 * 60 * 5,
+    // page revalidates at most every minute
+    revalidate: 60,
   };
 };
 
