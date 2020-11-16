@@ -13,10 +13,10 @@ import { LinkConfig, LinkSection } from "./LinkSection";
 import styled from "styled-components";
 import RouteLink from "next/link";
 import Router, { NextRouter, useRouter } from "next/router";
-import { debounce, groupBy } from "lodash-es";
+import { debounce } from "lodash-es";
 import { useRef, useEffect } from "react";
-import { normalizeParam, getSearchParam } from "utils";
-import { Member } from "pages/index";
+import { getSearchParam } from "utils";
+import { SidebarData } from "data/sidebar";
 
 const search = debounce((router: NextRouter, searchTerm: string) => {
   const searchParam = encodeURI(searchTerm);
@@ -38,21 +38,6 @@ const search = debounce((router: NextRouter, searchTerm: string) => {
       )
     : router.push(pathname, as);
 }, 200);
-
-const aggregateMemberLinks = (
-  members: Member[],
-  field: string,
-  prefix: string
-) => {
-  return Object.entries(groupBy(members, field))
-    .map(([fieldValue, group]) => ({
-      text: fieldValue,
-      count: (group as any)?.length,
-      href: `/${prefix}/[${prefix}]`,
-      as: `/${prefix}/${normalizeParam(fieldValue)}`,
-    }))
-    .filter(({ text }) => text);
-};
 
 const helpfulLinks: LinkConfig[] = [
   {
@@ -87,7 +72,7 @@ const SidebarContainer = styled(Flex)`
 `;
 
 interface SidebarProps {
-  data?: any;
+  data: SidebarData;
 }
 
 export const Sidebar = ({ data }: SidebarProps) => {
@@ -146,18 +131,19 @@ export const Sidebar = ({ data }: SidebarProps) => {
       {/* This spacer should have an mb of the height above + 30px */}
       <Spacer mb="140px" />
       <LinkSection title="Links" links={helpfulLinks} />
-      <LinkSection
-        title="Locations"
-        links={aggregateMemberLinks(data, "city", "location")}
-      />
-      <LinkSection
-        title="Organizations"
-        links={aggregateMemberLinks(data, "org", "org")}
-      />
-      <LinkSection
-        title="Team"
-        links={aggregateMemberLinks(data, "team", "team")}
-      />
+      {data?.map(([title, prefix, entries]) => {
+        return (
+          <LinkSection
+            key={`${prefix}-links`}
+            title={title}
+            links={entries.map(({ name: text, slug, count }) => ({
+              text,
+              href: `/${prefix}/${slug}`,
+              count,
+            }))}
+          />
+        );
+      })}
     </SidebarContainer>
   );
 };

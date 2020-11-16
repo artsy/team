@@ -1,59 +1,68 @@
-import { useRouter } from "next/router";
-import TeamNav, { ServerProps } from "../index";
-import { normalizeParam } from "utils";
+import TeamNav from "../index";
 import { NoResults } from "components/NoResults";
 import { FC } from "react";
-import Error from "next/error";
 import { GetStaticProps, GetStaticPaths } from "next";
-import { getMembers, getMemberProperty } from "../../data/team";
+import { getMembersIndex, MemberIndexListing } from "data/teamMember";
+import { getSidebarData } from "data/sidebar";
+import { prisma } from "data/prisma";
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  const subteams = await getMemberProperty("subteam");
+export const getStaticPaths: GetStaticPaths<{ subteam: string }> = async () => {
+  const subteams = await prisma.subteam.findMany({
+    select: {
+      slug: true,
+    },
+  });
   return {
-    paths: subteams.map((subteam) => ({
+    paths: subteams.map(({ slug }) => ({
       params: {
-        subteam: normalizeParam(subteam),
+        subteam: slug,
       },
     })),
-    fallback: false,
+    fallback: "blocking",
   };
 };
 
-export const getStaticProps: GetStaticProps = async () => {
-  const members = await getMembers();
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const subteamSlug = params?.subteam as string;
+  const members = await getMembersIndex({
+    subteams: {
+      some: {
+        slug: subteamSlug,
+      },
+    },
+  });
+  const subteam = await prisma.subteam.findFirst({
+    select: { name: true },
+    where: { slug: subteamSlug },
+  });
   return {
+    notFound: !subteam,
     props: {
       data: members,
+      sidebarData: await getSidebarData(),
+      subteam: subteam?.name,
     },
+    // page revalidates at most every 5 minutes
+    revalidate: 1 * 60 * 5,
   };
 };
 
-const Subteam: FC<ServerProps> = (props) => {
-  const router = useRouter();
+interface SubteamPageProps {
+  data: MemberIndexListing;
+  subteam?: string;
+}
 
-  if (!props.data) {
-    return <Error statusCode={500} />;
-  }
-
-  const subteam = router.query.subteam;
-  let formattedSubteam = "";
-
-  const data = props.data.filter((member) => {
-    if (member.subteam && normalizeParam(member.subteam) === subteam) {
-      formattedSubteam = member.subteam;
-      return true;
-    }
-    return false;
-  });
+const Team: FC<SubteamPageProps> = (props) => {
+  const { data, subteam } = props;
 
   return (
     <TeamNav
       {...props}
-      title={formattedSubteam}
+      title={subteam}
       data={data}
-      NoResults={() => <NoResults page={formattedSubteam} />}
+      NoResults={() => <NoResults page={subteam} />}
     />
   );
 };
 
-export default Subteam;
+export default Team;

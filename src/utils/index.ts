@@ -14,7 +14,10 @@ export const firstIfMany = <T>(arg: T | T[]): T => {
 };
 
 export const normalizeParam = (param: string) =>
-  param.replace(/[\W_]+/g, "_").toLowerCase();
+  param
+    .trim()
+    .replace(/[\W_]+/g, "_")
+    .toLowerCase();
 
 export const urlFromReq = (req: IncomingMessage) => {
   const host = req.headers.host ?? "localhost:3000";
@@ -44,4 +47,25 @@ export const useDelay = (delay: number) => {
   }, [delay]);
 
   return finished;
+};
+
+/**
+ * Pulls the sought after element out of the array (if it exists)
+ * and returns a deduplicate set of remaining items.
+ * @param toExtract The item to extract from the array
+ * @param sourceArray The array in which to do the extraction from
+ */
+export const extractFirstPartialMatch = (
+  toExtract: string,
+  sourceArray: string[]
+): [match: string | null, remainder: string[]] => {
+  const remainingArray = Array.from(new Set(sourceArray));
+  const extractionIndex = remainingArray.findIndex((t) =>
+    t.includes(toExtract)
+  );
+  if (extractionIndex === -1) {
+    return [null, remainingArray];
+  }
+  const [match] = remainingArray.splice(extractionIndex, 1);
+  return [match, remainingArray];
 };

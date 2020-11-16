@@ -1,39 +1,86 @@
-import { Flex, Box, Serif, ResponsiveImage, Separator } from "@artsy/palette";
+import {
+  Flex,
+  Box,
+  Serif,
+  Separator,
+  UserSingleIcon,
+  color,
+} from "@artsy/palette";
 import Error from "next/error";
-import { normalizeParam, useDelay } from "utils";
+import { useDelay } from "utils";
 import { FC, useEffect, useState } from "react";
 import { H1 } from "components/Typography";
-import { Member as MemberType } from "../index";
-import { GetStaticProps, GetStaticPaths } from "next";
-import { getMembers, getMemberProperty } from "../../data/team";
-import { MemberDetails } from "components/MemberDetails";
+import { GetStaticPaths } from "next";
 import { useAreaGrid } from "components/Grid";
 import { isWeekOf, relativeDaysTillAnniversary, isDayOf } from "utils/date";
 import { AwardIcon } from "components/AwardIcon";
+import { MemberDetails } from "components/MemberDetails";
 import { useWindowSize } from "@react-hook/window-size";
 import Confetti from "react-confetti";
+import { prisma } from "data/prisma";
+import { getSidebarData } from "data/sidebar";
+import { UnWrapPromise } from "utils/type-helpers";
+import { Image } from "components/Image";
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const members = await getMembers();
-  return {
-    props: {
-      data: members,
-      member: members.find(
-        (member) => normalizeParam(member.name) === params?.member
-      ),
+export const getStaticPaths: GetStaticPaths<{ member: string }> = async () => {
+  const members = await prisma.member.findMany({
+    select: {
+      slug: true,
     },
+  });
+  return {
+    paths: members.map(({ slug }) => ({
+      params: {
+        member: slug,
+      },
+    })),
+    fallback: "blocking",
   };
 };
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  const names = await getMemberProperty("name");
-  return {
-    paths: names.map((name) => ({
-      params: {
-        member: normalizeParam(name),
+export const getStaticProps = async ({
+  params,
+}: {
+  params: { member: string };
+}) => {
+  const memberSlug = params.member as string;
+  const member = await prisma.member.findFirst({
+    include: {
+      location: true,
+      orgs: true,
+      teams: true,
+      subteams: true,
+      manager: {
+        select: {
+          slug: true,
+          name: true,
+          headshot: true,
+          title: true,
+          location: true,
+        },
       },
-    })),
-    fallback: false,
+      reports: {
+        select: {
+          slug: true,
+          name: true,
+          headshot: true,
+          title: true,
+          location: true,
+        },
+      },
+    },
+    where: {
+      slug: memberSlug,
+    },
+  });
+  return {
+    notFound: !member,
+    props: {
+      sidebarData: await getSidebarData(),
+      member: JSON.parse(JSON.stringify(member)),
+    },
+    // page revalidates at most every 5 minutes
+    revalidate: 1 * 60 * 5,
   };
 };
 
@@ -53,8 +100,8 @@ const largeLayout: AreaType[][] = [
   ["Summary", "Details"],
 ];
 
-interface MemberProps {
-  member: MemberType;
+export interface MemberProps {
+  member: UnWrapPromise<ReturnType<typeof getStaticProps>>["props"]["member"];
 }
 
 const Member: FC<MemberProps> = ({ member }) => {
@@ -70,14 +117,14 @@ const Member: FC<MemberProps> = ({ member }) => {
   }
 
   useEffect(() => {
-    if (member.start_date && !finished) {
+    if (member.startDate && !finished) {
       setShowConfetti(true);
     }
-  }, [setShowConfetti, member.start_date, finished]);
+  }, [setShowConfetti, member.startDate, finished]);
 
   return (
     <>
-      {showConfetti && isDayOf(new Date(member.start_date!)) && (
+      {showConfetti && isDayOf(new Date(member.startDate!)) && (
         <Confetti
           width={width}
           height={height}
@@ -93,13 +140,13 @@ const Member: FC<MemberProps> = ({ member }) => {
         <Area.Heading>
           <Flex alignItems="center" justifyContent="space-between">
             <H1>{member.name}</H1>
-            {member.start_date && isWeekOf(new Date(member.start_date)) && (
+            {member.startDate && isWeekOf(new Date(member.startDate)) && (
               <>
                 <Flex ml={4}>
                   <AwardIcon />
                   <Serif size="4">
                     Artsyversary{" "}
-                    {relativeDaysTillAnniversary(new Date(member.start_date))}
+                    {relativeDaysTillAnniversary(new Date(member.startDate))}
                   </Serif>
                 </Flex>
               </>
@@ -109,11 +156,18 @@ const Member: FC<MemberProps> = ({ member }) => {
           <Separator mb={2} />
         </Area.Heading>
         <Area.Image>
-          <Box minWidth="300px" width="300px">
-            {member.profileImage && (
-              <ResponsiveImage src={member.profileImage} />
-            )}
-          </Box>
+          {member.headshot ? (
+            <Image
+              src={member.headshot}
+              priority={true}
+              width="300px"
+              height="300px"
+            />
+          ) : (
+            <Box background={color("black10")}>
+              <UserSingleIcon fill="black30" height="300px" width="300px" />
+            </Box>
+          )}
         </Area.Image>
         <Area.Summary width="300px">
           {member.title && (
@@ -121,14 +175,14 @@ const Member: FC<MemberProps> = ({ member }) => {
               {member.title}
             </Serif>
           )}
-          {member.city && (
+          {member.location?.city && (
             <Serif size="6" color="black60">
-              {member.city}
+              {member.location.city}
             </Serif>
           )}
-          {member.role_text && (
+          {member.roleText && (
             <Serif size="4" mt={1}>
-              {member.role_text}
+              {member.roleText}
             </Serif>
           )}
         </Area.Summary>
