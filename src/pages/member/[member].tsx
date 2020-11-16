@@ -54,12 +54,18 @@ export const getStaticProps = async ({
         select: {
           slug: true,
           name: true,
+          headshot: true,
+          title: true,
+          location: true,
         },
       },
       reports: {
         select: {
           slug: true,
           name: true,
+          headshot: true,
+          title: true,
+          location: true,
         },
       },
     },
@@ -156,7 +162,6 @@ const Member: FC<MemberProps> = ({ member }) => {
               priority={true}
               width="300px"
               height="300px"
-              layout="fixed"
             />
           ) : (
             <Box background={color("black10")}>

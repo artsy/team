@@ -341,6 +341,9 @@ export async function sync() {
 
 export default async function (req: NowRequest, res: NowResponse) {
   const [err, result] = await to(sync());
+  if (err) {
+    log.error(`A sync error occurred`, { err });
+  }
   err ? res.status(500).send(err) : res.status(200).send(result);
   res.end();
 }

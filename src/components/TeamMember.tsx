@@ -3,7 +3,7 @@ import { normalizeParam } from "../utils";
 import { AvatarFallback } from "./AvatarFallback";
 import RouterLink from "next/link";
 import { Box, Serif, Flex, Link, color } from "@artsy/palette";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 import { AwardIcon } from "./AwardIcon";
 import { isWeekOf } from "utils/date";
 import { Member, Location } from "@prisma/client";
@@ -57,7 +57,6 @@ export const TeamMember: FC<TeamMemberProps> = (props) => {
                   <Image
                     width="100px"
                     height="100px"
-                    layout="fixed"
                     src={member.headshot}
                     sizes="100px"
                     borderRadius="50%"
