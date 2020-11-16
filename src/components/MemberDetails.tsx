@@ -5,6 +5,7 @@ import RouterLink from "next/link";
 import { Fragment } from "react";
 import { Grid } from "components/Grid";
 import { Location, Member, Organization, Subteam, Team } from "@prisma/client";
+import { MemberLink } from "./MemberLink";
 
 interface MemberDetails {
   member: Member & {
@@ -12,14 +13,8 @@ interface MemberDetails {
     locations: Location[];
     teams: Team[];
     subteams: Subteam[];
-    manager: {
-      name: string;
-      slug: string;
-    };
-    reports: {
-      name: string;
-      slug: string;
-    }[];
+    manager: Member & { location: Location };
+    reports: Array<Member & { location: Location }>;
   };
 }
 
@@ -134,11 +129,7 @@ export function MemberDetails({ member }: MemberDetails) {
             <Serif size="4" weight="semibold">
               Manager:
             </Serif>
-            <RouterLink href={`/member/${manager.slug}`} passHref>
-              <Link noUnderline>
-                <Serif size="4">{manager.name}</Serif>
-              </Link>
-            </RouterLink>
+            <MemberLink {...manager} />
           </>
         )}
 
@@ -149,15 +140,13 @@ export function MemberDetails({ member }: MemberDetails) {
               Reports:
             </Serif>
             <span>
-              {reports.map((report) => (
-                <Fragment key={`report-${report.slug}`}>
-                  <RouterLink href={`/member/${report.slug}`} passHref>
-                    <Link noUnderline>
-                      <Serif size="4">{report.name}</Serif>
-                    </Link>
-                  </RouterLink>
-                </Fragment>
-              ))}
+              {reports.map((report) => {
+                return (
+                  <Fragment key={`report-${report.slug}`}>
+                    <MemberLink {...report} />
+                  </Fragment>
+                );
+              })}
             </span>
           </>
         )}

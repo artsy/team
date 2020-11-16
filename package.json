@@ -17,6 +17,7 @@
     "logs:prod": "hokusai production logs | grep '^{' | npx miami-vice"
   },
   "dependencies": {
+    "@accessible/popover": "^3.5.0",
     "@artsy/next-layout": "^0.2.0",
     "@artsy/next-palette": "^1.0.0",
     "@prisma/client": "2.11.0",

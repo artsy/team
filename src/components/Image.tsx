@@ -1,11 +1,12 @@
 import styled, { keyframes } from "styled-components";
-import { color, Box } from "@artsy/palette";
+import { color, Box, UserSingleIcon } from "@artsy/palette";
 import img from "next/image";
 import { ComponentPropsWithoutRef, useState } from "react";
 import { borderRadius, BorderRadiusProps } from "styled-system";
 
-type ImageProps = ComponentPropsWithoutRef<typeof img> &
+type ImageProps = Omit<ComponentPropsWithoutRef<typeof img>, "src"> &
   BorderRadiusProps & {
+    src?: string | null;
     width: number | string;
     height: number | string;
   };
@@ -14,19 +15,39 @@ export function Image({
   width,
   height,
   borderRadius,
+  src,
   ...otherProps
 }: ImageProps) {
   const [opacity, setOpacity] = useState(0);
   return (
     <ImageContainer width={width} height={height} borderRadius={borderRadius}>
-      <BaseImage
-        width={width}
-        height={height}
-        borderRadius={borderRadius}
-        opacity={opacity}
-        onLoad={() => setOpacity(1)}
-        {...otherProps}
-      />
+      {src ? (
+        <BaseImage
+          // @ts-ignore
+          layout="fixed"
+          width={width}
+          height={height}
+          borderRadius={borderRadius}
+          opacity={opacity}
+          src={src}
+          onLoad={() => setOpacity(1)}
+          {...otherProps}
+        />
+      ) : (
+        <Box
+          borderRadius={borderRadius}
+          backgroundColor="black10"
+          width={width}
+          height={height}
+        >
+          <UserSingleIcon
+            fill="black30"
+            height={height}
+            width={width}
+            p={0.5}
+          />
+        </Box>
+      )}
     </ImageContainer>
   );
 }
