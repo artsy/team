@@ -148,7 +148,12 @@ spec:
           containers:
             - name: team-data-sync-cron
               image: 585031190124.dkr.ecr.us-east-1.amazonaws.com/team:production
-              args: ["yarn", "prime-cache"]
+              args:
+                [
+                  "wget",
+                  "-qO-",
+                  "http://team-web-internal.default.svc.cluster.local:3000/api/sync",
+                ]
               imagePullPolicy: Always
               envFrom:
                 - configMapRef:
