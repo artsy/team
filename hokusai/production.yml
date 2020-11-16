@@ -139,7 +139,7 @@ kind: CronJob
 metadata:
   name: team-data-sync-cron
 spec:
-  schedule: "0 0 8-19 ? * MON,TUE,WED,THU,FRI *"
+  schedule: "0 8-19 * * 1-5"
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
