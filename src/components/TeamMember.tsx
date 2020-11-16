@@ -6,8 +6,8 @@ import { Box, Serif, Flex, Link, color } from "@artsy/palette";
 import styled, { keyframes } from "styled-components";
 import { AwardIcon } from "./AwardIcon";
 import { isWeekOf } from "utils/date";
-import Image from "next/image";
 import { Member, Location } from "@prisma/client";
+import { Image } from "components/Image";
 
 const TeamMemberContainer = styled(Flex)`
   border-radius: 5px;
@@ -16,28 +16,6 @@ const TeamMemberContainer = styled(Flex)`
   &:hover {
     background-color: ${color("black5")};
   }
-`;
-
-const pulse = keyframes`
-  0% { background-color: ${color("black10")}; }
-  50% { background-color: ${color("black5")}; }
-  100% { background-color: ${color("black10")}; }
-`;
-
-const AvatarContainer = styled(Box)`
-  flex-shrink: 0;
-  position: relative;
-  width: 100px;
-  height: 100px;
-  background-color: ${color("black10")};
-  animation: ${pulse} 2s ease-in-out infinite;
-  border-radius: 50%;
-`;
-
-const Avatar = styled(Image)`
-  border-radius: 50%;
-  opacity: ${(props) => (props as any).opacity};
-  transition: opacity 0.3s;
 `;
 
 const location = (member: TeamMemberProps["member"]) =>
@@ -54,7 +32,6 @@ export interface TeamMemberProps {
 }
 export const TeamMember: FC<TeamMemberProps> = (props) => {
   const { member, showAvatar = true } = props;
-  const [opacity, setOpacity] = useState(0);
 
   return (
     <RouterLink
@@ -65,7 +42,7 @@ export const TeamMember: FC<TeamMemberProps> = (props) => {
       <Link underlineBehavior="none">
         <TeamMemberContainer width="390px" p={1} ml={(!showAvatar && -1) || 0}>
           {showAvatar && (
-            <AvatarContainer mr={1}>
+            <Box flexShrink={0} mr={1} position="relative">
               <>
                 {member.startDate && isWeekOf(new Date(member.startDate)) && (
                   <AwardIcon
@@ -77,21 +54,19 @@ export const TeamMember: FC<TeamMemberProps> = (props) => {
                   />
                 )}
                 {member.headshot ? (
-                  <Avatar
+                  <Image
                     width="100px"
                     height="100px"
-                    // @ts-ignore Unsure why layout prop types are off
                     layout="fixed"
                     src={member.headshot}
                     sizes="100px"
-                    onLoad={() => setOpacity(1)}
-                    opacity={opacity}
+                    borderRadius="50%"
                   />
                 ) : (
                   <AvatarFallback diameter={"100px"} />
                 )}
               </>
-            </AvatarContainer>
+            </Box>
           )}
 
           <Flex flexDirection="column">
