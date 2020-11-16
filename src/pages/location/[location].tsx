@@ -38,8 +38,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       sidebarData: await getSidebarData(),
       location: location?.city,
     },
-    // page revalidates at most every 5 minutes
-    revalidate: 1 * 60 * 5,
+    // page revalidates at most every minute
+    revalidate: 60,
   };
 };
 

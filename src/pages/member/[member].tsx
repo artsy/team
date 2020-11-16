@@ -79,8 +79,8 @@ export const getStaticProps = async ({
       sidebarData: await getSidebarData(),
       member: JSON.parse(JSON.stringify(member)),
     },
-    // page revalidates at most every 5 minutes
-    revalidate: 1 * 60 * 5,
+    // page revalidates at most every minute
+    revalidate: 60,
   };
 };
 
