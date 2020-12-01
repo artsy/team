@@ -141,7 +141,7 @@ spec:
     - host: team-staging.artsy.net
       http:
         paths:
-          - path: /
+          - path: /oauth2
             pathType: Prefix
             backend:
               serviceName: team-web-internal
