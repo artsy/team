@@ -1,15 +1,24 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: team-web
   namespace: default
+  labels:
+    app: team
+    component: web
+    layer: application
 spec:
   strategy:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
     type: RollingUpdate
+  selector:
+    matchLabels:
+      app: team
+      component: web
+      layer: application
   template:
     metadata:
       labels:
@@ -72,7 +81,7 @@ metadata:
   namespace: default
 spec:
   scaleTargetRef:
-    apiVersion: extensions/v1beta1
+    apiVersion: apps/v1
     kind: Deployment
     name: team-web
   minReplicas: 1
@@ -102,7 +111,7 @@ spec:
   type: ClusterIP
 
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: team-external-auth
@@ -110,26 +119,31 @@ metadata:
     nginx.ingress.kubernetes.io/auth-url: "http://team-web-internal.default.svc.cluster.local:3000/api/auth"
     nginx.ingress.kubernetes.io/auth-signin: "https://stagingapi.artsy.net/oauth2/authorize?response_type=code&client_id={{ STAGING_APP_ID }}&redirect_uri=https://$host/oauth2/callback?rd=$escaped_request_uri"
 spec:
+  ingressClassName: nginx
   rules:
     - host: team-staging.artsy.net
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
               serviceName: team-web-internal
               servicePort: 3000
 
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: team-oauth
 spec:
+  ingressClassName: nginx
   rules:
     - host: team-staging.artsy.net
       http:
         paths:
           - path: /oauth2
+            pathType: Prefix
             backend:
               serviceName: team-web-internal
               servicePort: 3000
+

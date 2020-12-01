@@ -117,7 +117,7 @@ export async function sync() {
   );
   if (orphanedMembers.length > 0) {
     await prisma.member.deleteMany({
-      where: { OR: orphanedMembers },
+      where: { OR: orphanedMembers.map((slug) => ({ slug })) },
     });
   }
 
