@@ -141,8 +141,8 @@ spec:
     - host: team.artsy.net
       http:
         paths:
-          - path: /
-            pathType: Prefixoauth2
+          - path: /oauth2
+            pathType: Prefix
             backend:
               serviceName: team-web-internal
               servicePort: 3000
