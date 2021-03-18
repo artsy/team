@@ -31,7 +31,7 @@ spec:
         - name: team-web
           env:
             - name: PORT
-              value: "3000"
+              value: "8080"
             - name: NODE_ENV
               value: production
             - name: DATADOG_TRACE_AGENT_HOSTNAME
@@ -47,7 +47,7 @@ spec:
           imagePullPolicy: Always
           ports:
             - name: team-http
-              containerPort: 3000
+              containerPort: 8080
           resources:
             requests:
               cpu: 100m
@@ -106,7 +106,7 @@ metadata:
   namespace: default
 spec:
   ports:
-    - port: 3000
+    - port: 8080
       protocol: TCP
       name: http
       targetPort: team-http
@@ -122,7 +122,7 @@ kind: Ingress
 metadata:
   name: team-external-auth
   annotations:
-    nginx.ingress.kubernetes.io/auth-url: "http://team-web-internal.default.svc.cluster.local:3000/api/auth"
+    nginx.ingress.kubernetes.io/auth-url: "http://team-web-internal.default.svc.cluster.local:8080/api/auth"
     nginx.ingress.kubernetes.io/auth-signin: "https://stagingapi.artsy.net/oauth2/authorize?response_type=code&client_id={{ STAGING_APP_ID }}&redirect_uri=https://$host/oauth2/callback?rd=$escaped_request_uri"
     nginx.ingress.kubernetes.io/whitelist-source-range: "{{ externalIngressAllowSourceIP|join(',') }}"
 spec:
