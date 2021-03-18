@@ -34,6 +34,12 @@ spec:
               value: "3000"
             - name: NODE_ENV
               value: production
+            - name: DATADOG_TRACE_AGENT_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NODE_OPTIONS
+              value: "--max_old_space_size=256"
           envFrom:
             - configMapRef:
                 name: team-environment
@@ -44,7 +50,7 @@ spec:
               containerPort: 3000
           resources:
             requests:
-              cpu: 200m
+              cpu: 100m
               memory: 256Mi
             limits:
               memory: 512Mi
@@ -58,11 +64,11 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
-          lifecycle:
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 10"]
-      dnsPolicy: Default
+      dnsPolicy: ClusterFirst
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -103,7 +109,7 @@ spec:
     - port: 3000
       protocol: TCP
       name: http
-      targetPort: 3000
+      targetPort: team-http
   selector:
     app: team
     layer: application
@@ -129,7 +135,7 @@ spec:
             pathType: Prefix
             backend:
               serviceName: team-web-internal
-              servicePort: 3000
+              servicePort: http
 
 ---
 apiVersion: networking.k8s.io/v1beta1
@@ -148,5 +154,5 @@ spec:
             pathType: Prefix
             backend:
               serviceName: team-web-internal
-              servicePort: 3000
+              servicePort: http
 
