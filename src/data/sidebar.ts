@@ -32,6 +32,9 @@ async function getTeamLinksData() {
     include: {
       members: true,
     },
+    orderBy: {
+      name: 'asc'
+    }
   });
 
   return results.map(({ slug, name, members }) => ({
