@@ -146,9 +146,9 @@ export async function sync() {
         uploadUserImage(memberSlug, new URL(headshot))
       );
       if (imageUploadError || !headshotURL) {
-        log.error(`Failed to upload image for ${memberSlug}`, {
-          imageUploadError,
-        });
+        log.error(
+          `Failed to upload image for ${memberSlug}: ${imageUploadError}`
+        );
         headshot = "";
       } else {
         headshot = headshotURL;
