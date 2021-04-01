@@ -140,10 +140,21 @@ export async function uploadUserImage(
   );
 
   const contentType = file.headers["content-type"];
-  const extension =
+  const allowedImageTypes = [
+    "JPEG",
+    "PNG",
+    "WebP",
+    "GIF",
+    "SVG",
+    "TIFF",
+  ].map((e) => e.toLowerCase());
+
+  const extension: string | false =
     contentType.includes("image") && contentType.split("image/")[1];
 
   if (!extension) throw new Error(`No valid extension for ${imageUrl.href}`);
+  if (!allowedImageTypes.includes(extension.toLowerCase()))
+    throw new Error(`Invalid image format: ${imageUrl.href}`);
 
   return new Promise((resolve, reject) => {
     file.data.pipe(normalizer).pipe(
