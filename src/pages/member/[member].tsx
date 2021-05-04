@@ -140,7 +140,7 @@ const Member: FC<MemberProps> = ({ member }) => {
         <Area.Heading>
           <Flex alignItems="center" justifyContent="space-between">
             <H1>{member.name}</H1>
-            {member.startDate && isWeekOf(new Date(member.startDate)) && (
+            {member.startDate && isWeekOf(new Date(member.startDate)) ? (
               <>
                 <Flex ml={4}>
                   <AwardIcon />
@@ -150,7 +150,7 @@ const Member: FC<MemberProps> = ({ member }) => {
                   </Serif>
                 </Flex>
               </>
-            )}
+            ) : null}
           </Flex>
 
           <Separator mb={2} />
