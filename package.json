@@ -8,7 +8,7 @@
     "preprime-cache": "yarn create-db",
     "create-db": "prisma db push --preview-feature",
     "start": "node scripts/start",
-    "predev": "yarn write-creds",
+    "predev": "yarn write-creds; yarn prime-cache",
     "dev": "next dev",
     "prebuild": "yarn write-creds && yarn prime-cache",
     "build": "next build",

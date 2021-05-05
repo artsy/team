@@ -21,6 +21,7 @@ import { prisma } from "data/prisma";
 import { getSidebarData } from "data/sidebar";
 import { UnWrapPromise } from "utils/type-helpers";
 import { Image } from "components/Image";
+import { differenceInCalendarDays } from "date-fns";
 
 export const getStaticPaths: GetStaticPaths<{ member: string }> = async () => {
   const members = await prisma.member.findMany({
@@ -140,17 +141,20 @@ const Member: FC<MemberProps> = ({ member }) => {
         <Area.Heading>
           <Flex alignItems="center" justifyContent="space-between">
             <H1>{member.name}</H1>
-            {member.startDate && isWeekOf(new Date(member.startDate)) && (
+            {member.startDate && isWeekOf(new Date(member.startDate)) ? (
               <>
                 <Flex ml={4}>
                   <AwardIcon />
                   <Serif size="4">
-                    Artsyversary{" "}
+			              {differenceInCalendarDays(new Date(member.startDate), Date.now()) > -365
+			                ? "First day"
+			                : "Artsyversary"
+				            }{" "}
                     {relativeDaysTillAnniversary(new Date(member.startDate))}
                   </Serif>
                 </Flex>
               </>
-            )}
+            ) : null}
           </Flex>
 
           <Separator mb={2} />
