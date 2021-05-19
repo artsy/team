@@ -1,5 +1,5 @@
 import RouteLink from "next/link";
-import { Flex, Sans, Serif, Link, color } from "@artsy/palette";
+import { Flex, Box, Sans, Serif, Link, color } from "@artsy/palette";
 import { External } from "react-bytesize-icons";
 import { useRouter } from "next/router";
 
@@ -17,7 +17,7 @@ interface LinkSectionProps {
 export const LinkSection = ({ title, links }: LinkSectionProps) => {
   const router = useRouter();
   return (
-    <Flex flexDirection="column" mb={3}>
+    <Box mb={3}>
       <Sans size="3t" weight="medium">
         {title}
       </Sans>
@@ -54,6 +54,6 @@ export const LinkSection = ({ title, links }: LinkSectionProps) => {
           </Flex>
         );
       })}
-    </Flex>
+    </Box>
   );
 };
